@@ -1,6 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
-import chef from '../../assets/img/chef.png'
+import chef from '../../assets/img/matataki.png'
 import Button from '../../components/Button'
 import Container from '../../components/Container'
 import Page from '../../components/Page'
@@ -12,18 +12,18 @@ const Home: React.FC = () => {
   return (
     <Page>
       <PageHeader
-        icon={<img src={chef} height={120} />}
-        title="MasterChef is Ready"
-        subtitle="Stake Uniswap LP tokens to claim your very own yummy SUSHI!"
+        icon={<img src={chef} height={120} style={{ verticalAlign: 'initial' }} />}
+        title="Matataki is Ready"
+        subtitle="Stake FAN TICKET tokens to claim your very own yummy TOKEN!"
       />
 
-      <Container>
+      {/* <Container>
         <Balances />
-      </Container>
+      </Container> */}
+      <div style={{ height: '200px' }}></div>
       <Spacer size="lg" />
       <StyledInfo>
-        🏆<b>Pro Tip</b>: SUSHI-ETH UNI-V2 LP token pool yields TWICE more token
-        rewards per block.
+        🏆<b>Pro Tip</b>: The next rich man is you!
       </StyledInfo>
       <Spacer size="lg" />
       <div

@@ -14,6 +14,7 @@ import theme from './theme'
 import Farms from './views/Farms'
 import Home from './views/Home'
 import Stake from './views/Stake'
+import Pools from './views/Pools'
 
 const App: React.FC = () => {
   const [mobileMenu, setMobileMenu] = useState(false)
@@ -41,6 +42,9 @@ const App: React.FC = () => {
           <Route path="/staking">
             <Stake />
           </Route>
+          <Route path="/pools">
+            <Pools />
+          </Route>
         </Switch>
       </Router>
       <Disclaimer />
@@ -54,7 +58,7 @@ const Providers: React.FC = ({ children }) => {
       <UseWalletProvider
         chainId={1}
         connectors={{
-          walletconnect: { rpcUrl: 'https://mainnet.eth.aragon.network/' },
+          // walletconnect: { rpcUrl: 'https://mainnet.eth.aragon.network/' },
         }}
       >
         <SushiProvider>
