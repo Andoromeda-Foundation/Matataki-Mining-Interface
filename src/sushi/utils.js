@@ -117,7 +117,8 @@ export const getTotalLPWethValue = async (
 }
 
 export const approve = async (lpContract, masterChefContract, account) => {
-  return lpContract.methods
+  console.log('approve', lpContract, masterChefContract, account)
+  return await lpContract.methods
     .approve(masterChefContract.options.address, ethers.constants.MaxUint256)
     .send({ from: account })
 }

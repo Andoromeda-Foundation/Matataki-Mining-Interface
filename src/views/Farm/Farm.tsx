@@ -54,6 +54,8 @@ const Farm: React.FC = () => {
     return earnToken.toUpperCase()
   }, [earnToken])
 
+  console.log('lpContract', lpContract)
+
   return (
     <>
       <PageHeader

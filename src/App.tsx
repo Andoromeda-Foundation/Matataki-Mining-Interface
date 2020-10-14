@@ -14,9 +14,13 @@ import theme from './theme'
 import Farms from './views/Farms'
 import Home from './views/Home'
 import Stake from './views/Stake'
-import Pools from './views/Pools'
+
+import { useProvider } from "./hooks/useProvider";
+import { Network } from "./config/index";
 
 const App: React.FC = () => {
+  useProvider()
+
   const [mobileMenu, setMobileMenu] = useState(false)
 
   const handleDismissMobileMenu = useCallback(() => {
@@ -42,9 +46,6 @@ const App: React.FC = () => {
           <Route path="/staking">
             <Stake />
           </Route>
-          <Route path="/pools">
-            <Pools />
-          </Route>
         </Switch>
       </Router>
       <Disclaimer />
@@ -56,10 +57,10 @@ const Providers: React.FC = ({ children }) => {
   return (
     <ThemeProvider theme={theme}>
       <UseWalletProvider
-        chainId={1}
-        connectors={{
-          // walletconnect: { rpcUrl: 'https://mainnet.eth.aragon.network/' },
-        }}
+        chainId={ Network }
+        // connectors={{
+        //   walletconnect: { rpcUrl: 'https://mainnet.eth.aragon.network/' },
+        // }}
       >
         <SushiProvider>
           <TransactionProvider>

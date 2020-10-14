@@ -16,11 +16,16 @@ const useAllowance = (lpContract: Contract) => {
   const masterChefContract = getMasterChefContract(sushi)
 
   const fetchAllowance = useCallback(async () => {
-    const allowance = await getAllowance(
-      lpContract,
-      masterChefContract,
-      account,
-    )
+    let allowance: any = null
+    try {
+      allowance = await getAllowance(
+        lpContract,
+        masterChefContract,
+        account,
+      )
+    } catch (e) {
+      console.log('getAllowance error', getAllowance)
+    }
     setAllowance(new BigNumber(allowance))
   }, [account, masterChefContract, lpContract])
 

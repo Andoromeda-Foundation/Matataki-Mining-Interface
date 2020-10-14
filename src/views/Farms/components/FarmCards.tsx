@@ -63,6 +63,9 @@ const FarmCards: React.FC = () => {
     [[]],
   )
 
+  console.log('farms', farms)
+  console.log('rows', rows)
+
   return (
     <StyledCards>
       {!!rows[0].length ? (

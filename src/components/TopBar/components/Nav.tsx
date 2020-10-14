@@ -11,14 +11,11 @@ const Nav: React.FC = () => {
       <StyledLink exact activeClassName="active" to="/farms">
         Menu
       </StyledLink>
-      <StyledLink exact activeClassName="active" to="/staking">
+      {/* <StyledLink exact activeClassName="active" to="/staking">
         Staking
-      </StyledLink>
-      <StyledLink exact activeClassName="active" to="/pools">
-        Pools
-      </StyledLink>
+      </StyledLink> */}
       <StyledAbsoluteLink
-        href="https://medium.com/sushiswap/the-sushiswap-project-c4049ea9941e"
+        href="https://www.matataki.io/home"
         target="_blank"
       >
         About

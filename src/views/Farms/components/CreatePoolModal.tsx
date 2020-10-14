@@ -16,8 +16,12 @@ import Spacer from '../../../components/Spacer'
 import Value from '../../../components/Value'
 import moment from 'moment';
 
-import { Form, Input, Button, Select, Avatar, DatePicker, Space, message } from 'antd';
+import { Form, Input, Button, Select, Avatar, DatePicker, Space, message, Row, Col } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
+import { getTokenInfo } from "../../../utils/contract";
+import { debounce, isEmpty } from 'lodash';
+import Jazzicon from '../../../components/Jazzicon'
+
 const { RangePicker } = DatePicker;
 
 const { Option } = Select;
@@ -25,17 +29,20 @@ const { Option } = Select;
 const dateFormat = 'YYYY-MM-DD HH:mm';
 
 const layout = {
-  labelCol: { span: 6 },
-  wrapperCol: { span: 18 },
+  labelCol: { span: 7 },
+  wrapperCol: { span: 15 },
 };
 const tailLayout = {
-  wrapperCol: { offset: 6, span: 18 },
+  wrapperCol: { offset: 7, span: 15 },
 };
 
 const CreatePool = () => {
   const [form] = Form.useForm();
+  const { account } = useWallet()
   const [avatarSrc, setAvatarSrc] = useState('')
   const defaultValueTime: any = [moment().format('YYYY-MM-DD HH:mm'), moment().day(7).format('YYYY-MM-DD HH:mm')]
+  const [stakeTokenInfo, setStakeTokenInfo]: any = useState()
+  const [earnTokenInfo, setEarnTokenInfo]: any = useState()
 
   const onFinish = (values: any) => {
     console.log(values);
@@ -45,6 +52,38 @@ const CreatePool = () => {
   function onChangeAvatar() {
     let data = form.getFieldsValue()
     setAvatarSrc(data.cover)
+  }
+
+  async function onChangeStakeToken() {
+    try {
+      let data = form.getFieldsValue()
+      console.log('start search stake token info...', data)
+      if (String(data.stake).trim()) {
+        message.success('正在获取Token信息...');
+        const res = await getTokenInfo(data.stake)
+        console.log('onChangeStakeToken res', res)
+        setStakeTokenInfo(res)
+      }
+    } catch (e) {
+      console.log('onChangeStakeToken res error', e)
+      setStakeTokenInfo({})
+    }
+  }
+
+  async function onChangeEarnToken() {
+    try {
+      let data = form.getFieldsValue()
+      console.log('start search stake token info...', data)
+      if (String(data.earn).trim()) {
+        message.success('正在获取Token信息...');
+        const res = await getTokenInfo(data.earn)
+        console.log('onChangeEarnToken res', res)
+        setEarnTokenInfo(res)
+      }
+    } catch (e) {
+      console.log('onChangeEarnToken res error', e)
+      setEarnTokenInfo({})
+    }
   }
 
   function onChangeStart(date: any, dateString: any) {
@@ -80,7 +119,7 @@ const CreatePool = () => {
       <div style={{ display: 'flex' }}>
         <StyledBalanceWrapper>
           <CardIcon>
-            <Avatar size={64} src={avatarSrc} />
+            { avatarSrc ? <Avatar size={64} src={avatarSrc} /> : '' }
           </CardIcon>
         </StyledBalanceWrapper>
       </div>
@@ -89,14 +128,59 @@ const CreatePool = () => {
           <Input placeholder="Please input you cover" onChange={onChangeAvatar} />
         </Form.Item>
         <Form.Item name="poolName" label="Pool name" rules={[{ required: true, message: 'Please input your pool name!'  }]}>
-          <Input placeholder="Please input you cover" />
+          <Input placeholder="Please input you pool name" />
         </Form.Item>
         <Form.Item name="stake" label="Stake Token" rules={[{ required: true, message: 'Please input your stake token address!'  }]}>
-          <Input placeholder="Please input you cover" />
+          <Input placeholder="Please input you stake token address" onChange={onChangeStakeToken} />
         </Form.Item>
+        {
+          isEmpty(stakeTokenInfo) ? '' : (
+            <StyleTokenInfoRow>
+              <Row>
+                <Col span={layout.labelCol.span}></Col>
+                <Col span={layout.wrapperCol.span}>
+                  <StyleTokenInfoCol>
+                    <Space>
+                      <StyleTokenInfoCol>
+                        <Jazzicon address={account}></Jazzicon>
+                      </StyleTokenInfoCol>
+                      <span>{stakeTokenInfo.name}({stakeTokenInfo.symbol})</span>
+                      <span>decimals: {stakeTokenInfo.decimals}</span>
+                    </Space>
+                  </StyleTokenInfoCol>
+                </Col>
+              </Row>
+            </StyleTokenInfoRow>
+          )
+        }
         <Form.Item name="earn" label="Earn Token" rules={[{ required: true, message: 'Please input your earn token address!'  }]}>
-          <Input placeholder="Please input you cover" />
+          <Input placeholder="Please input you earn token address" onChange={onChangeEarnToken} />
         </Form.Item>
+        {
+          isEmpty(earnTokenInfo) ? '' : (
+            <>
+              <Form.Item name="earnNumber" label="Stake Number" rules={[{ required: true, message: 'Please input your earn token number!'  }]}>
+                <Input placeholder="Please input you earn token number" />
+              </Form.Item>
+              <StyleTokenInfoRow>
+                <Row>
+                  <Col span={layout.labelCol.span}></Col>
+                  <Col span={layout.wrapperCol.span}>
+                    <StyleTokenInfoCol>
+                      <Space>
+                        <StyleTokenInfoCol>
+                          <Jazzicon address={account}></Jazzicon>
+                        </StyleTokenInfoCol>
+                        <span>{earnTokenInfo.name}({earnTokenInfo.symbol})</span>
+                        <span>decimals: {earnTokenInfo.decimals}</span>
+                      </Space>
+                    </StyleTokenInfoCol>
+                  </Col>
+                </Row>
+              </StyleTokenInfoRow>
+            </>
+          )
+        }
         <Form.Item name="startTime" label="Start Time" rules={[{ required: true }]}>
           <Space direction="vertical" size={12}>
             <DatePicker showTime={{ format: 'HH:mm' }} onChange={onChangeStart} defaultValue={moment(defaultValueTime[0], dateFormat)} />
@@ -152,6 +236,15 @@ const StyledBalanceWrapper = styled.div`
   flex: 1;
   flex-direction: column;
   margin-bottom: ${(props) => props.theme.spacing[4]}px;
+`
+
+const StyleTokenInfoRow = styled.section`
+  margin: 0 0 24px 0;
+`
+
+const StyleTokenInfoCol = styled.section`
+  display: flex;
+  align-items: center;
 `
 
 export default AccountModal
