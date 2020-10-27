@@ -16,8 +16,8 @@ import useAllStakedValue, {
 import useFarms from '../../../hooks/useFarms'
 import useSushi from '../../../hooks/useSushi'
 import { getEarned, getMasterChefContract } from '../../../sushi/utils'
-import { bnToDec } from '../../../utils'
-import { getTokenInfo, farmLength, farmsAddress, rewardsToken, stakingToken } from "../../../utils/contract";
+import { bnToDec, arraySlice, iconxx } from '../../../utils'
+import { getTokenInfo, farmLength, farmsAddress, rewardsToken, stakingToken, getFactsOf, getAllFram, getEarnAndStakeTokenAddress, getAllTokenInfo } from "../../../utils/contract";
 import { getContractFactory, getContractFactoryStakingRewards } from "../../../utils/erc20";
 import { provider } from 'web3-core'
 import { StakingMiningPoolFactory } from '../../../constants/tokenAddresses'
@@ -34,6 +34,17 @@ interface FarmWithStakedValue extends Farm, StakedValue {
   stakeDecimals?: number,
 }
 
+interface tokennInfoInterface {
+  name: string,
+  symbol: string,
+  decimal: string
+}
+
+interface poolEarnAndStakeInterface {
+  earnTokenAddress: string,
+  stakeTokenAddress: string
+}
+
 const FarmCards: React.FC = () => {
   const [farmss] = useFarms()
   const [farms, setFarms] = useState([])
@@ -45,15 +56,16 @@ const FarmCards: React.FC = () => {
   useEffect(() => {
 
     const initFarm = async () => {
+      // 获取有多少个池子
       const contract = getContractFactory(ethereum as provider, StakingMiningPoolFactory)
       const farmNumber = await farmLength(contract)
 
-      // farm list
-      let farmList = Array.from({ length: Number(farmNumber) }, (i, idx) => idx)
-      const farmListResult = await Promise.all(farmList.map(i => farmsAddress(contract, i.toString())))
+      // 获取所有池子地址
+      const farmListResult = await getAllFram(StakingMiningPoolFactory, farmNumber)
       const farmListResultFilter = farmListResult.filter(i => !!i)
       console.log('farmListResultFilter', farmListResultFilter)
 
+      // 填充一些模版格式
       let list: any[] = []
       farmListResultFilter.forEach(i => {
         console.log('i', i)
@@ -65,7 +77,7 @@ const FarmCards: React.FC = () => {
           lpContract: '',
           tokenAddress: '',
           earnToken: '',
-          icon: '🌋',
+          icon: '',
           id: '',
           tokenSymbol: '',
 
@@ -84,50 +96,40 @@ const FarmCards: React.FC = () => {
         })
       })
 
-      // farm list reward
-      const farmListRewardResult = await Promise.all(
-        farmListResultFilter.map(i =>
-          rewardsToken(getContractFactoryStakingRewards(ethereum as provider, i))))
-      list.forEach((i, idx) =>
-        i.earnTokenAddress = i.earnTokenAddress = farmListRewardResult[idx])
-
-      // farm list stake
-      const farmListStakeResult = await Promise.all(
-        farmListResultFilter.map(i =>
-          stakingToken(getContractFactoryStakingRewards(ethereum as provider, i))))
-      list.forEach((i, idx) =>
-        i.lpTokenAddress = i.stakeTokenAddress = farmListStakeResult[idx])
-
-      // farm list reward token info
-      const farmListRewardInfoResult = await Promise.all(
-        list.map(i => getTokenInfo(i.earnTokenAddress)))
-
-      list.forEach((i, idx) => {
-        i.earnToken = farmListRewardInfoResult[idx].name
-        i.tokenSymbol = farmListRewardInfoResult[idx].symbol
-        // i.name = farmListRewardInfoResult[idx].name
-
-        i.earnName = farmListRewardInfoResult[idx].name
-        i.earnSymbol = farmListRewardInfoResult[idx].symbol
-        i.earnDecimals = farmListRewardInfoResult[idx].decimals
-
+      // 获取所有池子质押和奖励的token地址
+      const earnAndStakeTokenAddressList: poolEarnAndStakeInterface[] = await getEarnAndStakeTokenAddress(farmListResultFilter)
+      earnAndStakeTokenAddressList.forEach((i: poolEarnAndStakeInterface, idx: number) => {
+        list[idx].earnTokenAddress = list[idx].earnTokenAddress = i.earnTokenAddress
+        list[idx].lpTokenAddress = list[idx].stakeTokenAddress = i.stakeTokenAddress
       })
 
-      // farm list stake token info
-      const farmListStakeInfoResult = await Promise.all(
-        list.map(i => getTokenInfo(i.lpTokenAddress)))
+      // 获取所有token地址去查询
+      const tokenInfoAddressList: string[] = []
+      earnAndStakeTokenAddressList.forEach((i: poolEarnAndStakeInterface) => {
+        tokenInfoAddressList.push(i.earnTokenAddress)
+        tokenInfoAddressList.push(i.stakeTokenAddress)
+      })
+      // 查询所有token信息
+      const tokenAddressResult = await getAllTokenInfo(tokenInfoAddressList)
+      const tokenInfoResult: tokennInfoInterface[][] = await arraySlice(tokenAddressResult, 2)
 
-      list.forEach((i, idx) => {
-        i.lpToken = farmListStakeInfoResult[idx].symbol
-        // i.name += '-' + farmListStakeInfoResult[idx].name
+      console.log('tokenInfoResult', tokenInfoResult)
+      // 写入token信息
+      earnAndStakeTokenAddressList.forEach((i: poolEarnAndStakeInterface, idx: number) => {
+        list[idx].earnToken = tokenInfoResult[idx][0].name
+        list[idx].tokenSymbol = tokenInfoResult[idx][0].symbol
+        list[idx].earnName = tokenInfoResult[idx][0].name
+        list[idx].earnSymbol = tokenInfoResult[idx][0].symbol
+        list[idx].earnDecimals = tokenInfoResult[idx][0].decimal
+        list[idx].icon = iconxx((tokenInfoResult[idx][0].symbol).slice(0, 1))
 
-        i.stakeName = farmListStakeInfoResult[idx].name
-        i.stakeSymbol = farmListStakeInfoResult[idx].symbol
-        i.stakeDecimals = farmListStakeInfoResult[idx].decimals
+        list[idx].lpToken = tokenInfoResult[idx][1].symbol
+        list[idx].stakeName = tokenInfoResult[idx][1].name
+        list[idx].stakeSymbol = tokenInfoResult[idx][1].symbol
+        list[idx].stakeDecimals = tokenInfoResult[idx][1].decimal
       })
 
       setFarms(list)
-
     }
     initFarm()
   }, [])
@@ -236,7 +238,8 @@ const FarmCard: React.FC<FarmCardProps> = ({ farm }) => {
 
   return (
     <StyledCardWrapper>
-      {farm.tokenSymbol === 'SUSHI' && <StyledCardAccent />}
+      {/* {farm.tokenSymbol === 'SUSHI' && <StyledCardAccent />} */}
+      {<StyledCardAccent />}
       <Card>
         <CardContent>
           <StyledContent>

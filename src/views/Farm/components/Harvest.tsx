@@ -11,6 +11,7 @@ import useEarnings from '../../../hooks/useEarningsPool'
 import useReward from '../../../hooks/useRewardPool'
 import { getBalanceNumber } from '../../../utils/formatBalance'
 import { Contract } from 'web3-eth-contract'
+import { iconxx } from "../../../utils/index";
 
 interface HarvestProps {
   lpContract?: Contract
@@ -30,7 +31,7 @@ const Harvest: React.FC<HarvestProps> = ({ pid, poolContract, tokenName, decimal
       <CardContent>
         <StyledCardContentInner>
           <StyledCardHeader>
-            <CardIcon>🍙</CardIcon>
+            <CardIcon>{iconxx(tokenName.slice(0, 1))}</CardIcon>
             <Value value={getBalanceNumber(earnings, decimals)} />
             <Label text={`${tokenName} Earned`} />
           </StyledCardHeader>
