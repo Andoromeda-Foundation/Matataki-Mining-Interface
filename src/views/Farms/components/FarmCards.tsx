@@ -17,15 +17,120 @@ import useFarms from '../../../hooks/useFarms'
 import useSushi from '../../../hooks/useSushi'
 import { getEarned, getMasterChefContract } from '../../../sushi/utils'
 import { bnToDec } from '../../../utils'
+import { getTokenInfo, farmLength, farmsAddress, rewardsToken, stakingToken } from "../../../utils/contract";
+import { getContractFactory, getContractFactoryStakingRewards } from "../../../utils/erc20";
+import { provider } from 'web3-core'
+import { StakingMiningPoolFactory } from '../../../constants/tokenAddresses'
 
 interface FarmWithStakedValue extends Farm, StakedValue {
-  apy: BigNumber
+  apy: BigNumber,
+  poolAddress?: string,
+  earnName?: string,
+  earnSymbol?: string,
+  earnDecimals?: number,
+  stakeName?: string,
+  stakeSymbol?: string,
+  stakeTokenAddress?: string,
+  stakeDecimals?: number,
 }
 
 const FarmCards: React.FC = () => {
-  const [farms] = useFarms()
-  const { account } = useWallet()
+  const [farmss] = useFarms()
+  const [farms, setFarms] = useState([])
+  const { ethereum, account }: { account: string; ethereum: provider } = useWallet()
   const stakedValue = useAllStakedValue()
+
+  console.log('farmss', farmss)
+
+  useEffect(() => {
+
+    const initFarm = async () => {
+      const contract = getContractFactory(ethereum as provider, StakingMiningPoolFactory)
+      const farmNumber = await farmLength(contract)
+
+      // farm list
+      let farmList = Array.from({ length: Number(farmNumber) }, (i, idx) => idx)
+      const farmListResult = await Promise.all(farmList.map(i => farmsAddress(contract, i.toString())))
+      const farmListResultFilter = farmListResult.filter(i => !!i)
+      console.log('farmListResultFilter', farmListResultFilter)
+
+      let list: any[] = []
+      farmListResultFilter.forEach(i => {
+        console.log('i', i)
+        list.push({
+          pid: 0,
+          name: '',
+          lpToken: '',
+          lpTokenAddress: '',
+          lpContract: '',
+          tokenAddress: '',
+          earnToken: '',
+          icon: '⛰️',
+          id: '',
+          tokenSymbol: '',
+
+          tokenContract: '',
+
+          poolAddress: i,
+          earnName: '',
+          earnSymbol: '',
+          earnTokenAddress: '',
+          earnDecimals: 18,
+
+          stakeName: '',
+          stakeSymbol: '',
+          stakeTokenAddress: '',
+          stakeDecimals: 18
+        })
+      })
+
+      // farm list reward
+      const farmListRewardResult = await Promise.all(
+        farmListResultFilter.map(i =>
+          rewardsToken(getContractFactoryStakingRewards(ethereum as provider, i))))
+      list.forEach((i, idx) =>
+        i.earnTokenAddress = i.earnTokenAddress = farmListRewardResult[idx])
+
+      // farm list stake
+      const farmListStakeResult = await Promise.all(
+        farmListResultFilter.map(i =>
+          stakingToken(getContractFactoryStakingRewards(ethereum as provider, i))))
+      list.forEach((i, idx) =>
+        i.lpTokenAddress = i.stakeTokenAddress = farmListStakeResult[idx])
+
+      // farm list reward token info
+      const farmListRewardInfoResult = await Promise.all(
+        list.map(i => getTokenInfo(i.earnTokenAddress)))
+
+      list.forEach((i, idx) => {
+        i.earnToken = farmListRewardInfoResult[idx].name
+        i.tokenSymbol = farmListRewardInfoResult[idx].symbol
+        // i.name = farmListRewardInfoResult[idx].name
+
+        i.earnName = farmListRewardInfoResult[idx].name
+        i.earnSymbol = farmListRewardInfoResult[idx].symbol
+        i.earnDecimals = farmListRewardInfoResult[idx].decimals
+
+      })
+
+      // farm list stake token info
+      const farmListStakeInfoResult = await Promise.all(
+        list.map(i => getTokenInfo(i.lpTokenAddress)))
+
+      list.forEach((i, idx) => {
+        i.lpToken = farmListStakeInfoResult[idx].symbol
+        // i.name += '-' + farmListStakeInfoResult[idx].name
+
+        i.stakeName = farmListStakeInfoResult[idx].name
+        i.stakeSymbol = farmListStakeInfoResult[idx].symbol
+        i.stakeDecimals = farmListStakeInfoResult[idx].decimals
+      })
+
+      setFarms(list)
+
+    }
+    initFarm()
+  }, [])
 
   const sushiIndex = farms.findIndex(
     ({ tokenSymbol }) => tokenSymbol === 'SUSHI',
@@ -46,10 +151,10 @@ const FarmCards: React.FC = () => {
         ...stakedValue[i],
         apy: stakedValue[i]
           ? sushiPrice
-              .times(SUSHI_PER_BLOCK)
-              .times(BLOCKS_PER_YEAR)
-              .times(stakedValue[i].poolWeight)
-              .div(stakedValue[i].totalWethValue)
+            .times(SUSHI_PER_BLOCK)
+            .times(BLOCKS_PER_YEAR)
+            .times(stakedValue[i].poolWeight)
+            .div(stakedValue[i].totalWethValue)
           : null,
       }
       const newFarmRows = [...farmRows]
@@ -80,10 +185,10 @@ const FarmCards: React.FC = () => {
           </StyledRow>
         ))
       ) : (
-        <StyledLoadingWrapper>
-          <Loader text="Cooking the rice ..." />
-        </StyledLoadingWrapper>
-      )}
+          <StyledLoadingWrapper>
+            <Loader text="Cooking the rice ..." />
+          </StyledLoadingWrapper>
+        )}
     </StyledCards>
   )
 }
@@ -136,16 +241,16 @@ const FarmCard: React.FC<FarmCardProps> = ({ farm }) => {
         <CardContent>
           <StyledContent>
             <CardIcon>{farm.icon}</CardIcon>
-            <StyledTitle>{farm.name}</StyledTitle>
+            <StyledTitle>{farm.earnName + '-' + farm.stakeName}</StyledTitle>
             <StyledDetails>
-              <StyledDetail>Deposit {farm.lpToken.toUpperCase()}</StyledDetail>
-              <StyledDetail>Earn {farm.earnToken.toUpperCase()}</StyledDetail>
+              <StyledDetail>Deposit {farm.stakeSymbol.toUpperCase()}</StyledDetail>
+              <StyledDetail>Earn {farm.earnSymbol.toUpperCase()}</StyledDetail>
             </StyledDetails>
             <Spacer />
             <Button
               disabled={!poolActive}
               text={poolActive ? 'Select' : undefined}
-              to={`/farms/${farm.id}`}
+              to={`/farms/${farm.poolAddress}`}
             >
               {!poolActive && (
                 <Countdown
@@ -159,10 +264,10 @@ const FarmCard: React.FC<FarmCardProps> = ({ farm }) => {
               <span>
                 {farm.apy
                   ? `${farm.apy
-                      .times(new BigNumber(100))
-                      .toNumber()
-                      .toLocaleString('en-US')
-                      .slice(0, -1)}%`
+                    .times(new BigNumber(100))
+                    .toNumber()
+                    .toLocaleString('en-US')
+                    .slice(0, -1)}%`
                   : 'Loading ...'}
               </span>
               {/* <span>

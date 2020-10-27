@@ -18,9 +18,15 @@ import moment from 'moment';
 
 import { Form, Input, Button, Select, Avatar, DatePicker, Space, message, Row, Col } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
-import { getTokenInfo } from "../../../utils/contract";
+import { getTokenInfo, approve, createMiningPool } from "../../../utils/contract";
 import { debounce, isEmpty } from 'lodash';
 import Jazzicon from '../../../components/Jazzicon'
+import ERC20ABI from '../../../sushi/lib/abi/erc20.json'
+import { StakingMiningPoolFactory } from '../../../constants/tokenAddresses'
+import { getContract, getContractFactory } from "../../../utils/erc20";
+import { provider } from 'web3-core'
+import useApprove from "../../../hooks/useApprove";
+import { parseUnits } from 'ethers/lib/utils'
 
 const { RangePicker } = DatePicker;
 
@@ -37,16 +43,40 @@ const tailLayout = {
 };
 
 const CreatePool = () => {
+  const { ethereum, account }: { account: string; ethereum: provider } = useWallet()
   const [form] = Form.useForm();
-  const { account } = useWallet()
+  const [requestedApproval, setRequestedApproval] = useState(false)
+  const [requestedSubmit, setRequestedSubmit] = useState(false)
   const [avatarSrc, setAvatarSrc] = useState('')
   const defaultValueTime: any = [moment().format('YYYY-MM-DD HH:mm'), moment().day(7).format('YYYY-MM-DD HH:mm')]
-  const [stakeTokenInfo, setStakeTokenInfo]: any = useState()
-  const [earnTokenInfo, setEarnTokenInfo]: any = useState()
+  const [stakeTokenInfo, setStakeTokenInfo]: any = useState({
+    token: 'TOKEN',
+    name: 'TK',
+    symbol: 'TK',
+    decimals: 18
+  })
+  const [earnTokenInfo, setEarnTokenInfo]: any = useState({
+    token: 'TOKEN',
+    name: 'TK',
+    symbol: 'TK',
+    decimals: 18
+  })
 
-  const onFinish = (values: any) => {
+  const onFinish = async (values: any) => {
     console.log(values);
     message.success('开始创建');
+    try {
+      setRequestedSubmit(true)
+      const contract = getContractFactory(ethereum as provider, StakingMiningPoolFactory)
+      const txHash = await createMiningPool(contract, values.poolName, values.earn, values.stake, parseUnits(values.earnNumber, earnTokenInfo.decimals).toString(), '7', account)
+      // user rejected tx or didn't go thru
+      if (!txHash) {
+        setRequestedSubmit(false)
+      }
+    } catch (e) {
+      console.log(e)
+      setRequestedSubmit(false)
+    }
   };
 
   function onChangeAvatar() {
@@ -112,6 +142,21 @@ const CreatePool = () => {
     })
   }, [])
 
+  async function handleApprove() {
+    try {
+      setRequestedApproval(true)
+      const data = form.getFieldsValue()
+      const contract = getContract(ethereum as provider, data.earn)
+      const txHash = await approve(contract, StakingMiningPoolFactory, account)
+      // user rejected tx or didn't go thru
+      if (!txHash) {
+        setRequestedApproval(false)
+      }
+    } catch (e) {
+      console.log(e)
+      setRequestedApproval(false)
+    }
+  }
 
 
   return (
@@ -119,18 +164,18 @@ const CreatePool = () => {
       <div style={{ display: 'flex' }}>
         <StyledBalanceWrapper>
           <CardIcon>
-            { avatarSrc ? <Avatar size={64} src={avatarSrc} /> : '' }
+            {avatarSrc ? <Avatar size={64} src={avatarSrc} /> : ''}
           </CardIcon>
         </StyledBalanceWrapper>
       </div>
       <Form {...layout} form={form} name="control-hooks" onFinish={onFinish}>
-        <Form.Item name="cover" label="Cover" rules={[{ required: true, message: 'Please input your cover url!'  }]}>
+        <Form.Item name="cover" label="Cover" rules={[{ required: true, message: 'Please input your cover url!' }]}>
           <Input placeholder="Please input you cover" onChange={onChangeAvatar} />
         </Form.Item>
-        <Form.Item name="poolName" label="Pool name" rules={[{ required: true, message: 'Please input your pool name!'  }]}>
+        <Form.Item name="poolName" label="Pool name" rules={[{ required: true, message: 'Please input your pool name!' }]}>
           <Input placeholder="Please input you pool name" />
         </Form.Item>
-        <Form.Item name="stake" label="Stake Token" rules={[{ required: true, message: 'Please input your stake token address!'  }]}>
+        <Form.Item name="stake" label="Stake Token" rules={[{ required: true, message: 'Please input your stake token address!' }]}>
           <Input placeholder="Please input you stake token address" onChange={onChangeStakeToken} />
         </Form.Item>
         {
@@ -140,26 +185,26 @@ const CreatePool = () => {
                 <Col span={layout.labelCol.span}></Col>
                 <Col span={layout.wrapperCol.span}>
                   <StyleTokenInfoCol>
-                    <Space>
-                      <StyleTokenInfoCol>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <section style={{ display: 'flex', alignItems: 'center', marginRight: 4 }}>
                         <Jazzicon address={account}></Jazzicon>
-                      </StyleTokenInfoCol>
+                      </section>
                       <span>{stakeTokenInfo.name}({stakeTokenInfo.symbol})</span>
-                      <span>decimals: {stakeTokenInfo.decimals}</span>
-                    </Space>
+                    </div>
+                    <span>decimals: {stakeTokenInfo.decimals}</span>
                   </StyleTokenInfoCol>
                 </Col>
               </Row>
             </StyleTokenInfoRow>
           )
         }
-        <Form.Item name="earn" label="Earn Token" rules={[{ required: true, message: 'Please input your earn token address!'  }]}>
+        <Form.Item name="earn" label="Earn Token" rules={[{ required: true, message: 'Please input your earn token address!' }]}>
           <Input placeholder="Please input you earn token address" onChange={onChangeEarnToken} />
         </Form.Item>
         {
           isEmpty(earnTokenInfo) ? '' : (
             <>
-              <Form.Item name="earnNumber" label="Stake Number" rules={[{ required: true, message: 'Please input your earn token number!'  }]}>
+              <Form.Item name="earnNumber" label="Stake Number" rules={[{ required: true, message: 'Please input your earn token number!' }]}>
                 <Input placeholder="Please input you earn token number" />
               </Form.Item>
               <StyleTokenInfoRow>
@@ -167,13 +212,19 @@ const CreatePool = () => {
                   <Col span={layout.labelCol.span}></Col>
                   <Col span={layout.wrapperCol.span}>
                     <StyleTokenInfoCol>
-                      <Space>
-                        <StyleTokenInfoCol>
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <section style={{ display: 'flex', alignItems: 'center', marginRight: 4 }}>
                           <Jazzicon address={account}></Jazzicon>
-                        </StyleTokenInfoCol>
+                        </section>
                         <span>{earnTokenInfo.name}({earnTokenInfo.symbol})</span>
-                        <span>decimals: {earnTokenInfo.decimals}</span>
-                      </Space>
+                      </div>
+                      <span>decimals: {earnTokenInfo.decimals}</span>
+                      <Button type="primary"
+                        disabled={requestedApproval}
+                        onClick={handleApprove}
+                      >
+                        Approve {(earnTokenInfo.symbol).toLocaleUpperCase()}
+                      </Button>
                     </StyleTokenInfoCol>
                   </Col>
                 </Row>
@@ -192,7 +243,8 @@ const CreatePool = () => {
           </Space>
         </Form.Item>
         <Form.Item {...tailLayout}>
-          <Button type="primary" htmlType="submit">
+          <Button type="primary" htmlType="submit"
+            disabled={requestedSubmit}>
             Create
           </Button>
         </Form.Item>
@@ -244,7 +296,7 @@ const StyleTokenInfoRow = styled.section`
 
 const StyleTokenInfoCol = styled.section`
   display: flex;
-  align-items: center;
+  flex-direction: column;
 `
 
 export default AccountModal

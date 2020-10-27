@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useState } from 'react'
 import styled from 'styled-components'
+import { useInactiveListener } from '../../hooks/useInactiveListener'
 
 interface ModalsContext {
   content?: React.ReactNode,
@@ -9,11 +10,13 @@ interface ModalsContext {
 }
 
 export const Context = createContext<ModalsContext>({
-  onPresent: () => {},
-  onDismiss: () => {},
+  onPresent: () => { },
+  onDismiss: () => { },
 })
 
 const Modals: React.FC = ({ children }) => {
+  useInactiveListener()
+
   const [isOpen, setIsOpen] = useState(false)
   const [content, setContent] = useState<React.ReactNode>()
   const [modalKey, setModalKey] = useState<string>()
