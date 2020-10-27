@@ -33,31 +33,31 @@ export const getSushiContract = (sushi) => {
 export const getFarms = (sushi) => {
   return sushi
     ? sushi.contracts.pools.map(
-        ({
-          pid,
-          name,
-          symbol,
-          icon,
-          tokenAddress,
-          tokenSymbol,
-          tokenContract,
-          lpAddress,
-          lpContract,
-        }) => ({
-          pid,
-          id: symbol,
-          name,
-          lpToken: symbol,
-          lpTokenAddress: lpAddress,
-          lpContract,
-          tokenAddress,
-          tokenSymbol,
-          tokenContract,
-          earnToken: 'sushi',
-          earnTokenAddress: sushi.contracts.sushi.options.address,
-          icon,
-        }),
-      )
+      ({
+        pid,
+        name,
+        symbol,
+        icon,
+        tokenAddress,
+        tokenSymbol,
+        tokenContract,
+        lpAddress,
+        lpContract,
+      }) => ({
+        pid,
+        id: symbol,
+        name,
+        lpToken: symbol,
+        lpTokenAddress: lpAddress,
+        lpContract,
+        tokenAddress,
+        tokenSymbol,
+        tokenContract,
+        earnToken: 'sushi',
+        earnTokenAddress: sushi.contracts.sushi.options.address,
+        icon,
+      }),
+    )
     : []
 }
 
@@ -71,6 +71,10 @@ export const getPoolWeight = async (masterChefContract, pid) => {
 
 export const getEarned = async (masterChefContract, pid, account) => {
   return masterChefContract.methods.pendingSushi(pid, account).call()
+}
+
+export const getEarnedPool = async (poolContract, account) => {
+  return poolContract.methods.earned(account).call()
 }
 
 export const getTotalLPWethValue = async (
@@ -117,9 +121,14 @@ export const getTotalLPWethValue = async (
 }
 
 export const approve = async (lpContract, masterChefContract, account) => {
-  console.log('approve', lpContract, masterChefContract, account)
   return await lpContract.methods
     .approve(masterChefContract.options.address, ethers.constants.MaxUint256)
+    .send({ from: account })
+}
+
+export const approvePool = async (stakeContract, poolContractAddress, account) => {
+  return await stakeContract.methods
+    .approve(poolContractAddress, ethers.constants.MaxUint256.toString())
     .send({ from: account })
 }
 
@@ -132,6 +141,17 @@ export const stake = async (masterChefContract, pid, amount, account) => {
     .deposit(
       pid,
       new BigNumber(amount).times(new BigNumber(10).pow(18)).toString(),
+    )
+    .send({ from: account })
+    .on('transactionHash', (tx) => {
+      console.log(tx)
+      return tx.transactionHash
+    })
+}
+export const stakePool = async (poolContract, amount, decimals, account) => {
+  return poolContract.methods
+    .stake(
+      new BigNumber(amount).times(new BigNumber(10).pow(decimals || 18)).toString(),
     )
     .send({ from: account })
     .on('transactionHash', (tx) => {
@@ -152,9 +172,32 @@ export const unstake = async (masterChefContract, pid, amount, account) => {
       return tx.transactionHash
     })
 }
+
+export const unstakePool = async (poolContract, amount, decimals, account) => {
+  return poolContract.methods
+    .withdraw(
+      new BigNumber(amount).times(new BigNumber(10).pow(decimals || 18)).toString(),
+    )
+    .send({ from: account })
+    .on('transactionHash', (tx) => {
+      console.log(tx)
+      return tx.transactionHash
+    })
+}
+
 export const harvest = async (masterChefContract, pid, account) => {
   return masterChefContract.methods
     .deposit(pid, '0')
+    .send({ from: account })
+    .on('transactionHash', (tx) => {
+      console.log(tx)
+      return tx.transactionHash
+    })
+}
+
+export const harvestPool = async (poolContract, account) => {
+  return poolContract.methods
+    .getReward()
     .send({ from: account })
     .on('transactionHash', (tx) => {
       console.log(tx)
@@ -166,6 +209,16 @@ export const getStaked = async (masterChefContract, pid, account) => {
   try {
     const { amount } = await masterChefContract.methods
       .userInfo(pid, account)
+      .call()
+    return new BigNumber(amount)
+  } catch {
+    return new BigNumber(0)
+  }
+}
+export const getStakedPool = async (poolContract, account) => {
+  try {
+    const amount = await poolContract.methods
+      .balanceOf(account)
       .call()
     return new BigNumber(amount)
   } catch {

@@ -6,32 +6,38 @@ import CardContent from '../../../components/CardContent'
 import CardIcon from '../../../components/CardIcon'
 import Label from '../../../components/Label'
 import Value from '../../../components/Value'
-import useEarnings from '../../../hooks/useEarnings'
-import useReward from '../../../hooks/useReward'
+import useEarnings from '../../../hooks/useEarningsPool'
+// import useReward from '../../../hooks/useReward'
+import useReward from '../../../hooks/useRewardPool'
 import { getBalanceNumber } from '../../../utils/formatBalance'
+import { Contract } from 'web3-eth-contract'
 
 interface HarvestProps {
+  lpContract?: Contract
   pid: number
+  poolContract: Contract
+  tokenName: string
+  decimals: number
 }
 
-const Harvest: React.FC<HarvestProps> = ({ pid }) => {
-  const earnings = useEarnings(pid)
+const Harvest: React.FC<HarvestProps> = ({ pid, poolContract, tokenName, decimals }) => {
+  const earnings = useEarnings(poolContract)
   const [pendingTx, setPendingTx] = useState(false)
-  const { onReward } = useReward(pid)
+  const { onReward } = useReward(poolContract)
 
   return (
     <Card>
       <CardContent>
         <StyledCardContentInner>
           <StyledCardHeader>
-            <CardIcon>🍣</CardIcon>
-            <Value value={getBalanceNumber(earnings)} />
-            <Label text="SUSHI Earned" />
+            <CardIcon>🍙</CardIcon>
+            <Value value={getBalanceNumber(earnings, decimals)} />
+            <Label text={`${tokenName} Earned`} />
           </StyledCardHeader>
           <StyledCardActions>
             <Button
               disabled={!earnings.toNumber() || pendingTx}
-              text={pendingTx ? 'Collecting SUSHI' : 'Harvest'}
+              text={pendingTx ? `Collecting ${tokenName}` : 'Harvest'}
               onClick={async () => {
                 setPendingTx(true)
                 await onReward()

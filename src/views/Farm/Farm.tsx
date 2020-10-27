@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import styled from 'styled-components'
 import { useWallet } from 'use-wallet'
@@ -9,12 +9,37 @@ import useFarm from '../../hooks/useFarm'
 import useRedeem from '../../hooks/useRedeem'
 import useSushi from '../../hooks/useSushi'
 import { getMasterChefContract } from '../../sushi/utils'
-import { getContract } from '../../utils/erc20'
 import Harvest from './components/Harvest'
 import Stake from './components/Stake'
+import { getTokenInfo, farmLength, farmsAddress, rewardsToken, stakingToken } from '../../utils/contract'
+import { getContract, getContractFactory, getContractFactoryStakingRewards } from '../../utils/erc20'
+
+interface farmInterface {
+  earnName: string,
+  earnSymbol: string,
+  earnTokenAddress: string,
+  earnDecimals: number,
+
+  stakeName: string,
+  stakeSymbol: string,
+  stakeTokenAddress: string,
+  stakeDecimals: number
+}
+
+const farmTemp: farmInterface = {
+  earnName: '',
+  earnSymbol: '',
+  earnTokenAddress: '',
+  earnDecimals: 18,
+
+  stakeName: '',
+  stakeSymbol: '',
+  stakeTokenAddress: '',
+  stakeDecimals: 18
+}
 
 const Farm: React.FC = () => {
-  const { farmId } = useParams()
+  const { farmId }: { farmId: string } = useParams()
   const {
     pid,
     lpToken,
@@ -32,9 +57,35 @@ const Farm: React.FC = () => {
     name: '',
     icon: '',
   }
+  const [farm, setFarm] = useState<farmInterface>(Object.assign({}, farmTemp))
+
 
   useEffect(() => {
     window.scrollTo(0, 0)
+  }, [])
+
+  useEffect(() => {
+
+    const initFarm = async (farmId: string) => {
+      const data: farmInterface = Object.assign({}, farmTemp)
+
+      data.earnTokenAddress = await rewardsToken(getContractFactoryStakingRewards(ethereum as provider, farmId))
+      data.stakeTokenAddress = await stakingToken(getContractFactoryStakingRewards(ethereum as provider, farmId))
+
+      const earnTokenInfoResult = await getTokenInfo(data.earnTokenAddress)
+      data.earnName = earnTokenInfoResult.name
+      data.earnSymbol = earnTokenInfoResult.symbol
+      data.earnDecimals = earnTokenInfoResult.decimals
+      const stakeTokenInfoResult = await getTokenInfo(data.stakeTokenAddress)
+      data.stakeName = stakeTokenInfoResult.name
+      data.stakeSymbol = stakeTokenInfoResult.symbol
+      data.stakeDecimals = stakeTokenInfoResult.decimals
+
+      setFarm(data)
+
+      console.log('data', data)
+    }
+    initFarm(farmId)
   }, [])
 
   const sushi = useSushi()
@@ -43,6 +94,15 @@ const Farm: React.FC = () => {
   const lpContract = useMemo(() => {
     return getContract(ethereum as provider, lpTokenAddress)
   }, [ethereum, lpTokenAddress])
+
+  const stakeContract = useMemo(() => {
+    console.log('stakeContract farm', farm.stakeTokenAddress)
+    return getContract(ethereum as provider, farm.stakeTokenAddress)
+  }, [ethereum, farm])
+
+  const poolContract = useMemo(() => {
+    return getContractFactoryStakingRewards(ethereum as provider, farmId)
+  }, [ethereum, farm])
 
   const { onRedeem } = useRedeem(getMasterChefContract(sushi))
 
@@ -54,26 +114,36 @@ const Farm: React.FC = () => {
     return earnToken.toUpperCase()
   }, [earnToken])
 
+
   console.log('lpContract', lpContract)
 
   return (
     <>
       <PageHeader
-        icon={icon}
-        subtitle={`Deposit ${lpTokenName}  Tokens and earn ${earnTokenName}`}
+        icon={icon || '⛰️'}
+        subtitle={`Deposit ${farm.stakeSymbol.toUpperCase()}  Tokens and earn ${farm.earnSymbol.toUpperCase()}`}
         title={name}
       />
       <StyledFarm>
         <StyledCardsWrapper>
           <StyledCardWrapper>
-            <Harvest pid={pid} />
+            <Harvest pid={pid}
+              poolContract={poolContract}
+              tokenName={farm.earnSymbol.toUpperCase()}
+              decimals={farm.earnDecimals}
+            />
           </StyledCardWrapper>
           <Spacer />
           <StyledCardWrapper>
             <Stake
               lpContract={lpContract}
+              stakeContract={stakeContract}
+              stakeContracAddress={farm.stakeTokenAddress}
+              poolContract={poolContract}
+              poolContractAddress={farmId}
               pid={pid}
-              tokenName={lpToken.toUpperCase()}
+              tokenName={farm.stakeSymbol.toUpperCase()}
+              decimals={farm.stakeDecimals}
             />
           </StyledCardWrapper>
         </StyledCardsWrapper>

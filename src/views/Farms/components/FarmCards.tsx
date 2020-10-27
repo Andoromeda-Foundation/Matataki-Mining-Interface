@@ -65,7 +65,7 @@ const FarmCards: React.FC = () => {
           lpContract: '',
           tokenAddress: '',
           earnToken: '',
-          icon: '⛰️',
+          icon: '🌋',
           id: '',
           tokenSymbol: '',
 

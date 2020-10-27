@@ -9,8 +9,9 @@ import { getFullDisplayBalance } from '../../../utils/formatBalance'
 
 interface WithdrawModalProps extends ModalProps {
   max: BigNumber
-  onConfirm: (amount: string) => void
+  onConfirm: (amount: string, decimals: number) => void
   tokenName?: string
+  decimals: number
 }
 
 const WithdrawModal: React.FC<WithdrawModalProps> = ({
@@ -18,13 +19,14 @@ const WithdrawModal: React.FC<WithdrawModalProps> = ({
   onDismiss,
   max,
   tokenName = '',
+  decimals
 }) => {
   const [val, setVal] = useState('')
   const [pendingTx, setPendingTx] = useState(false)
 
   const fullBalance = useMemo(() => {
-    return getFullDisplayBalance(max)
-  }, [max])
+    return getFullDisplayBalance(max, decimals)
+  }, [max, decimals])
 
   const handleChange = useCallback(
     (e: React.FormEvent<HTMLInputElement>) => {
@@ -54,7 +56,7 @@ const WithdrawModal: React.FC<WithdrawModalProps> = ({
           text={pendingTx ? 'Pending Confirmation' : 'Confirm'}
           onClick={async () => {
             setPendingTx(true)
-            await onConfirm(val)
+            await onConfirm(val, decimals)
             setPendingTx(false)
             onDismiss()
           }}

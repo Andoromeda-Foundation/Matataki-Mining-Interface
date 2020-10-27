@@ -10,38 +10,52 @@ import IconButton from '../../../components/IconButton'
 import { AddIcon } from '../../../components/icons'
 import Label from '../../../components/Label'
 import Value from '../../../components/Value'
-import useAllowance from '../../../hooks/useAllowance'
-import useApprove from '../../../hooks/useApprove'
+// import useAllowance from '../../../hooks/useAllowance'
+import useAllowancePool from '../../../hooks/useAllowancePool'
+// import useApprove from '../../../hooks/useApprove'
+import useApprovePool from '../../../hooks/useApprovePool'
 import useModal from '../../../hooks/useModal'
-import useStake from '../../../hooks/useStake'
-import useStakedBalance from '../../../hooks/useStakedBalance'
+// import useStake from '../../../hooks/useStake'
+import useStake from '../../../hooks/useStakePool'
+// import useStakedBalance from '../../../hooks/useStakedBalance'
+import useStakedBalance from '../../../hooks/useStakedBalancePool'
 import useTokenBalance from '../../../hooks/useTokenBalance'
-import useUnstake from '../../../hooks/useUnstake'
+// import useUnstake from '../../../hooks/useUnstake'
+import useUnstake from '../../../hooks/useUnstakePool'
 import { getBalanceNumber } from '../../../utils/formatBalance'
 import DepositModal from './DepositModal'
 import WithdrawModal from './WithdrawModal'
 
 interface StakeProps {
   lpContract: Contract
+  stakeContract: Contract
+  stakeContracAddress: string
+  poolContract: Contract
+  poolContractAddress: string
   pid: number
-  tokenName: string
+  tokenName: string,
+  decimals: number
 }
 
-const Stake: React.FC<StakeProps> = ({ lpContract, pid, tokenName }) => {
+const Stake: React.FC<StakeProps> = ({ lpContract, stakeContract, stakeContracAddress, poolContract, poolContractAddress, pid, tokenName, decimals }) => {
+  console.log('lpContract', lpContract)
+  console.log('stakeContract', stakeContract)
   const [requestedApproval, setRequestedApproval] = useState(false)
 
-  const allowance = useAllowance(lpContract)
-  const { onApprove } = useApprove(lpContract)
+  const allowance = useAllowancePool(stakeContract, poolContractAddress)
+  console.log('allowance', allowance.toNumber())
+  const { onApprove } = useApprovePool(stakeContract, poolContractAddress)
 
-  const tokenBalance = useTokenBalance(lpContract.options.address)
-  const stakedBalance = useStakedBalance(pid)
+  const tokenBalance = useTokenBalance(stakeContracAddress)
+  const stakedBalance = useStakedBalance(poolContract)
 
-  const { onStake } = useStake(pid)
-  const { onUnstake } = useUnstake(pid)
+  const { onStake } = useStake(poolContract)
+  const { onUnstake } = useUnstake(poolContract)
 
   const [onPresentDeposit] = useModal(
     <DepositModal
       max={tokenBalance}
+      decimals={decimals}
       onConfirm={onStake}
       tokenName={tokenName}
     />,
@@ -50,6 +64,7 @@ const Stake: React.FC<StakeProps> = ({ lpContract, pid, tokenName }) => {
   const [onPresentWithdraw] = useModal(
     <WithdrawModal
       max={stakedBalance}
+      decimals={decimals}
       onConfirm={onUnstake}
       tokenName={tokenName}
     />,
@@ -73,8 +88,8 @@ const Stake: React.FC<StakeProps> = ({ lpContract, pid, tokenName }) => {
       <CardContent>
         <StyledCardContentInner>
           <StyledCardHeader>
-            <CardIcon>👨🏻‍🍳</CardIcon>
-            <Value value={getBalanceNumber(stakedBalance)} />
+            <CardIcon>🏗</CardIcon>
+            <Value value={getBalanceNumber(stakedBalance, decimals)} />
             <Label text={`${tokenName} Tokens Staked`} />
           </StyledCardHeader>
           <StyledCardActions>
@@ -85,18 +100,18 @@ const Stake: React.FC<StakeProps> = ({ lpContract, pid, tokenName }) => {
                 text={`Approve ${tokenName}`}
               />
             ) : (
-              <>
-                <Button
-                  disabled={stakedBalance.eq(new BigNumber(0))}
-                  text="Unstake"
-                  onClick={onPresentWithdraw}
-                />
-                <StyledActionSpacer />
-                <IconButton onClick={onPresentDeposit}>
-                  <AddIcon />
-                </IconButton>
-              </>
-            )}
+                <>
+                  <Button
+                    disabled={stakedBalance.eq(new BigNumber(0))}
+                    text="Unstake"
+                    onClick={onPresentWithdraw}
+                  />
+                  <StyledActionSpacer />
+                  <IconButton onClick={onPresentDeposit}>
+                    <AddIcon />
+                  </IconButton>
+                </>
+              )}
           </StyledCardActions>
         </StyledCardContentInner>
       </CardContent>

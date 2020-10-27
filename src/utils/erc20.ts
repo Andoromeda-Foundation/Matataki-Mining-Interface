@@ -53,6 +53,20 @@ export const getAllowance = async (
     return '0'
   }
 }
+export const getAllowancePool = async (
+  lpContract: Contract,
+  poolContractAddress: string,
+  account: string,
+): Promise<string> => {
+  try {
+    const allowance: string = await lpContract.methods
+      .allowance(account, poolContractAddress)
+      .call()
+    return allowance
+  } catch (e) {
+    return '0'
+  }
+}
 
 export const getBalance = async (
   provider: provider,
