@@ -49,18 +49,8 @@ const CreatePool = () => {
   const [requestedSubmit, setRequestedSubmit] = useState(false)
   const [avatarSrc, setAvatarSrc] = useState('')
   const defaultValueTime: any = [moment().format('YYYY-MM-DD HH:mm'), moment().day(7).format('YYYY-MM-DD HH:mm')]
-  const [stakeTokenInfo, setStakeTokenInfo]: any = useState({
-    token: 'TOKEN',
-    name: 'TK',
-    symbol: 'TK',
-    decimals: 18
-  })
-  const [earnTokenInfo, setEarnTokenInfo]: any = useState({
-    token: 'TOKEN',
-    name: 'TK',
-    symbol: 'TK',
-    decimals: 18
-  })
+  const [stakeTokenInfo, setStakeTokenInfo]: any = useState({})
+  const [earnTokenInfo, setEarnTokenInfo]: any = useState({})
 
   const onFinish = async (values: any) => {
     console.log(values);
