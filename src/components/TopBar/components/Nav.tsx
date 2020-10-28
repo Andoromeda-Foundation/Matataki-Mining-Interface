@@ -15,7 +15,7 @@ const Nav: React.FC = () => {
         Staking
       </StyledLink> */}
       <StyledAbsoluteLink
-        href="https://www.matataki.io/home"
+        href="https://github.com/Andoromeda-Foundation/Matataki-Mining-Interface"
         target="_blank"
       >
         About
