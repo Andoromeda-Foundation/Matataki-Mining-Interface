@@ -392,6 +392,7 @@ const StyledContent = styled.div`
   align-items: center;
   display: flex;
   flex-direction: column;
+  height: 100%;
 `
 
 const StyledSpacer = styled.div`
@@ -400,6 +401,7 @@ const StyledSpacer = styled.div`
 `
 
 const StyledDetails = styled.div`
+  flex: 1;
   margin-top: ${(props) => props.theme.spacing[2]}px;
   text-align: center;
 `
