@@ -159,13 +159,16 @@ const CreatePool = () => {
   async function handleApprove() {
     try {
       setRequestedApproval(true)
-      const data = form.getFieldsValue()
-      const contract = getContract(ethereum as provider, data.earn)
-      const txHash = await approve(contract, StakingMiningPoolFactory, account)
-      // user rejected tx or didn't go thru
-      if (!txHash) {
-        setRequestedApproval(false)
+      message.success('Start Approve...')
+      const txHash = await approve(earnContract, StakingMiningPoolFactory, account)
+      if (txHash) {
+        message.success('Approve Success...')
+      } else {
+        // user rejected tx or didn't go thru
+        message.success('Maybe the user rejected...')
       }
+      console.log('txHash', txHash)
+      setRequestedApproval(false)
     } catch (e) {
       console.log(e)
       setRequestedApproval(false)
