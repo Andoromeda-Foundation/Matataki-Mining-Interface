@@ -194,7 +194,7 @@ const CreatePool = () => {
         {
           isEmpty(earnTokenInfo) ? '' : (
             <>
-              <Form.Item name="earnNumber" label="Stake Number" rules={[{ required: true, message: 'Please input your earn token number!' }]}>
+              <Form.Item name="earnNumber" label="Earn Number" rules={[{ required: true, message: 'Please input your earn token number!' }]}>
                 <Input placeholder="Please input you earn token number" />
               </Form.Item>
               <StyleTokenInfoRow>
