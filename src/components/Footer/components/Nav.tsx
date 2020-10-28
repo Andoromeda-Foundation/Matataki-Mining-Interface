@@ -4,7 +4,7 @@ import styled from 'styled-components'
 const Nav: React.FC = () => {
   return (
     <StyledNav>
-      <StyledLink target="_blank" href="https://github.com/Andoromeda-Foundation">
+      <StyledLink target="_blank" href="https://rinkeby.etherscan.io/address/0xd976a092dd24af37b9f854e64ac9953ee9353e85#readContract">
         Matataki Contract
       </StyledLink>
       {/* <StyledLink
@@ -16,7 +16,7 @@ const Nav: React.FC = () => {
       {/* <StyledLink target="_blank" href="https://discord.gg/hJ2p555">
         Discord
       </StyledLink> */}
-      <StyledLink target="_blank" href="https://github.com/Andoromeda-Foundation">
+      <StyledLink target="_blank" href="https://github.com/Andoromeda-Foundation/Matataki-Mining-Interface">
         Github
       </StyledLink>
       <StyledLink target="_blank" href="http://matataki.io/">
