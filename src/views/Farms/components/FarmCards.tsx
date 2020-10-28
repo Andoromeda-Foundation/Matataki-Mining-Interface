@@ -370,6 +370,7 @@ const StyledTitle = styled.h4`
   font-weight: 700;
   margin: ${(props) => props.theme.spacing[2]}px 0 0;
   padding: 0;
+  text-align: center;
 `
 
 const StyledContent = styled.div`
