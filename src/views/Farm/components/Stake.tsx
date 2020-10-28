@@ -27,7 +27,7 @@ import DepositModal from './DepositModal'
 import WithdrawModal from './WithdrawModal'
 
 interface StakeProps {
-  lpContract: Contract
+  // lpContract: Contract
   stakeContract: Contract
   stakeContracAddress: string
   poolContract: Contract
@@ -36,9 +36,9 @@ interface StakeProps {
   tokenName: string,
   decimals: number
 }
-
-const Stake: React.FC<StakeProps> = ({ lpContract, stakeContract, stakeContracAddress, poolContract, poolContractAddress, pid, tokenName, decimals }) => {
-  console.log('lpContract', lpContract)
+// lpContract
+const Stake: React.FC<StakeProps> = ({ stakeContract, stakeContracAddress, poolContract, poolContractAddress, pid, tokenName, decimals }) => {
+  // console.log('lpContract', lpContract)
   console.log('stakeContract', stakeContract)
   const [requestedApproval, setRequestedApproval] = useState(false)
 
