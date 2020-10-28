@@ -4,7 +4,7 @@ import { useWallet } from 'use-wallet'
 import useTokenBalance from '../../../hooks/useTokenBalance'
 import useSushi from '../../../hooks/useSushi'
 import { getSushiAddress } from '../../../sushi/utils'
-import { getBalanceNumber } from '../../../utils/formatBalance'
+// import { getBalanceNumber } from '../../../utils/formatBalance'
 import Button from '../../Button'
 import CardIcon from '../../CardIcon'
 import Label from '../../Label'
@@ -24,8 +24,8 @@ const AccountModal: React.FC<ModalProps> = ({ onDismiss }) => {
     reset()
   }, [onDismiss, reset])
 
-  const sushi = useSushi()
-  const sushiBalance = useTokenBalance(getSushiAddress(sushi))
+  // const sushi = useSushi()
+  // const sushiBalance = useTokenBalance(getSushiAddress(sushi))
 
   return (
     <Modal>
@@ -39,15 +39,15 @@ const AccountModal: React.FC<ModalProps> = ({ onDismiss }) => {
               <img style={{ width: '50px', height: '50px' }} src={matataki}></img>
             </CardIcon>
             <StyledBalance>
-              <Value value={getBalanceNumber(sushiBalance)} />
-              <Label text="SUSHI Balance" />
+              {/* <Value value={getBalanceNumber(sushiBalance)} /> */}
+              {/* <Label text="SUSHI Balance" /> */}
             </StyledBalance>
           </StyledBalanceWrapper>
         </div>
 
         <Spacer />
         <Button
-          href={`https://etherscan.io/address/${account}`}
+          href={`${process.env.REACT_APP_ETHERSCAN_URL}/address/${account}`}
           text="View on Etherscan"
           variant="secondary"
         />

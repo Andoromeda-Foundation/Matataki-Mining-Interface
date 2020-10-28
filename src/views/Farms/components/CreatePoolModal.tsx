@@ -47,7 +47,7 @@ const CreatePool = () => {
   const [form] = Form.useForm();
   const [requestedApproval, setRequestedApproval] = useState(false)
   const [requestedSubmit, setRequestedSubmit] = useState(false)
-  const [avatarSrc, setAvatarSrc] = useState('')
+  // const [avatarSrc, setAvatarSrc] = useState('')
   const defaultValueTime: any = [moment().format('YYYY-MM-DD HH:mm'), moment().day(7).format('YYYY-MM-DD HH:mm')]
   const [stakeTokenInfo, setStakeTokenInfo]: any = useState({})
   const [earnTokenInfo, setEarnTokenInfo]: any = useState({})
@@ -58,7 +58,7 @@ const CreatePool = () => {
     try {
       setRequestedSubmit(true)
       const contract = getContractFactory(ethereum as provider, StakingMiningPoolFactory)
-      const txHash = await createMiningPool(contract, values.poolName, values.earn, values.stake, parseUnits(values.earnNumber, earnTokenInfo.decimals).toString(), '7', account)
+      const txHash = await createMiningPool(contract, `${earnTokenInfo.symbol}-${earnTokenInfo.symbol}`, values.earn, values.stake, parseUnits(values.earnNumber, earnTokenInfo.decimals).toString(), values.days, account)
       // user rejected tx or didn't go thru
       if (!txHash) {
         setRequestedSubmit(false)
@@ -69,10 +69,10 @@ const CreatePool = () => {
     }
   };
 
-  function onChangeAvatar() {
-    let data = form.getFieldsValue()
-    setAvatarSrc(data.cover)
-  }
+  // function onChangeAvatar() {
+  //   let data = form.getFieldsValue()
+  //   setAvatarSrc(data.cover)
+  // }
 
   async function onChangeStakeToken() {
     try {
@@ -106,22 +106,22 @@ const CreatePool = () => {
     }
   }
 
-  function onChangeStart(date: any, dateString: any) {
-    // console.log(date, dateString);
-    let data = form.getFieldsValue()
-    form.setFieldsValue({
-      ...data,
-      startTime: dateString
-    })
-  }
-  function onChangeEnd(date: any, dateString: any) {
-    // console.log(date, dateString);
-    let data = form.getFieldsValue()
-    form.setFieldsValue({
-      ...data,
-      endTime: dateString
-    })
-  }
+  // function onChangeStart(date: any, dateString: any) {
+  //   // console.log(date, dateString);
+  //   let data = form.getFieldsValue()
+  //   form.setFieldsValue({
+  //     ...data,
+  //     startTime: dateString
+  //   })
+  // }
+  // function onChangeEnd(date: any, dateString: any) {
+  //   // console.log(date, dateString);
+  //   let data = form.getFieldsValue()
+  //   form.setFieldsValue({
+  //     ...data,
+  //     endTime: dateString
+  //   })
+  // }
 
   useEffect(() => {
     let data = form.getFieldsValue()
@@ -154,17 +154,17 @@ const CreatePool = () => {
       <div style={{ display: 'flex' }}>
         <StyledBalanceWrapper>
           <CardIcon>
-            {avatarSrc ? <Avatar size={64} src={avatarSrc} /> : ''}
+            <span>🍚</span>
           </CardIcon>
         </StyledBalanceWrapper>
       </div>
       <Form {...layout} form={form} name="control-hooks" onFinish={onFinish}>
-        <Form.Item name="cover" label="Cover" rules={[{ required: true, message: 'Please input your cover url!' }]}>
+        {/* <Form.Item name="cover" label="Cover" rules={[{ required: true, message: 'Please input your cover url!' }]}>
           <Input placeholder="Please input you cover" onChange={onChangeAvatar} />
-        </Form.Item>
-        <Form.Item name="poolName" label="Pool name" rules={[{ required: true, message: 'Please input your pool name!' }]}>
+        </Form.Item> */}
+        {/* <Form.Item name="poolName" label="Pool name" rules={[{ required: true, message: 'Please input your pool name!' }]}>
           <Input placeholder="Please input you pool name" />
-        </Form.Item>
+        </Form.Item> */}
         <Form.Item name="stake" label="Stake Token" rules={[{ required: true, message: 'Please input your stake token address!' }]}>
           <Input placeholder="Please input you stake token address" onChange={onChangeStakeToken} />
         </Form.Item>
@@ -222,7 +222,7 @@ const CreatePool = () => {
             </>
           )
         }
-        <Form.Item name="startTime" label="Start Time" rules={[{ required: true }]}>
+        {/* <Form.Item name="startTime" label="Start Time" rules={[{ required: true }]}>
           <Space direction="vertical" size={12}>
             <DatePicker showTime={{ format: 'HH:mm' }} onChange={onChangeStart} defaultValue={moment(defaultValueTime[0], dateFormat)} />
           </Space>
@@ -231,6 +231,9 @@ const CreatePool = () => {
           <Space direction="vertical" size={12}>
             <DatePicker showTime={{ format: 'HH:mm' }} onChange={onChangeEnd} defaultValue={moment(defaultValueTime[1], dateFormat)} />
           </Space>
+        </Form.Item> */}
+        <Form.Item name="days" label="Days" rules={[{ required: true, message: 'Please input days!' }]}>
+          <Input placeholder="Please input days" />
         </Form.Item>
         <Form.Item {...tailLayout}>
           <Button type="primary" htmlType="submit"
