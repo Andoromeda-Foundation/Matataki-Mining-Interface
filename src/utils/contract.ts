@@ -15,20 +15,21 @@ const IStakingRewards = new ethers.utils.Interface(StakingRewards)
 const IStakingMiningPoolFactory = new ethers.utils.Interface(StakingMiningPoolFactory)
 
 interface FactsOfERC20 {
-    decimals: number;
-    totalSupply: BigNumber;
-    name: string;
-    symbol: string;
+    decimals: number
+    totalSupply: BigNumber
+    name: string
+    symbol: string
 }
 interface tokennInfoInterface {
-    name: string,
-    symbol: string,
-    decimal: string
+    name: string
+    symbol: string
+    decimal: number
 }
 
 interface poolEarnAndStakeInterface {
-    earnTokenAddress: string,
+    earnTokenAddress: string
     stakeTokenAddress: string
+    totalSupply: BigNumber
 }
 // read
 
@@ -115,43 +116,6 @@ export const createMiningPool = async (contract: any, name: string, rewardsToken
 
 
 // multiple
-export const getFactsOf = async (token: string): Promise<FactsOfERC20> => {
-    console.log('getFactsOf token', token, IERC20.getFunction('name'))
-    const fragments = ['decimals', 'totalSupply', 'name', 'symbol'].map(name => IERC20.getFunction(name))
-    const encodedCalldata = fragments.map(fragment => ({
-        target: token,
-        callData: IERC20.encodeFunctionData(fragment)
-    }))
-    const { returnData } = await aggregateCalls([
-        {
-            target: '0x2526d83c8fb743a3ac126f7745a96b19b52f1cfe',
-            callData: IERC20.encodeFunctionData(fragments[2])
-        },
-        {
-            target: '0x4c9cf20d2f9ef4b6c2d60bbdadb5d9e2e9f7c3d2',
-            callData: IERC20.encodeFunctionData(fragments[2])
-        },
-        {
-            target: '0x2526d83c8fb743a3ac126f7745a96b19b52f1cfe',
-            callData: IERC20.encodeFunctionData(fragments[2])
-        },
-        {
-            target: '0x4c9cf20d2f9ef4b6c2d60bbdadb5d9e2e9f7c3d2',
-            callData: IERC20.encodeFunctionData(fragments[2])
-        }
-    ])
-    console.log('returnData', returnData)
-
-    console.log(IERC20.decodeFunctionResult(fragments[2], returnData[0]))
-    console.log(IERC20.decodeFunctionResult(fragments[2], returnData[1]))
-
-
-    const decimals = 18
-    const totalSupply = new BigNumber('0')
-    const name = 'name'
-    const symbol = 'name'
-    return { decimals: decimals, totalSupply: totalSupply, name: name, symbol: symbol }
-}
 
 /**
  * 返回所有旷池地址
@@ -181,7 +145,7 @@ export const getAllFram = async (contractAddress: string, length: number): Promi
  * ABI
  */
 export const getEarnAndStakeTokenAddress = async (contractAddress: string[]): Promise<poolEarnAndStakeInterface[]> => {
-    const fragments = ['rewardsToken', 'stakingToken'].map(name => IStakingRewards.getFunction(name))
+    const fragments = ['rewardsToken', 'stakingToken', 'totalSupply'].map(name => IStakingRewards.getFunction(name))
 
     let encodedCalldata = contractAddress.map((address: string) => (
         [
@@ -192,6 +156,10 @@ export const getEarnAndStakeTokenAddress = async (contractAddress: string[]): Pr
             {
                 target: address,
                 callData: IStakingRewards.encodeFunctionData(fragments[1])
+            },
+            {
+                target: address,
+                callData: IStakingRewards.encodeFunctionData(fragments[2])
             }
         ]
     ))
@@ -201,9 +169,11 @@ export const getEarnAndStakeTokenAddress = async (contractAddress: string[]): Pr
     const farmListTokenAddress: poolEarnAndStakeInterface[] = contractAddress.map((_, idx: number) => {
         let [rewards] = IStakingRewards.decodeFunctionResult(fragments[0], returnDataList[idx][0])
         let [stakeing] = IStakingRewards.decodeFunctionResult(fragments[1], returnDataList[idx][1])
+        let [totalSupply] = IStakingRewards.decodeFunctionResult(fragments[2], returnDataList[idx][2])
         return {
             earnTokenAddress: rewards,
             stakeTokenAddress: stakeing,
+            totalSupply: totalSupply
         }
     })
     return farmListTokenAddress
