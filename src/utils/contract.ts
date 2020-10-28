@@ -38,19 +38,10 @@ interface poolEarnAndStakeInterface {
  * get token info
  * @param address contract address
  */
-export const getTokenInfo = async (address: string) => {
+export const getTokenInfo = async (address: string): Promise<tokennInfoInterface> => {
     try {
-        let provider = ethers.getDefaultProvider(NetworksName[Network]);
-        const contract = new ethers.Contract(address, ERC20ABI, provider)
-        let responseName = await contract.name()
-        let responseSymbol = await contract.symbol()
-        let responseDecimals = await contract.decimals()
-        console.log('responseName', responseName, responseSymbol, responseDecimals)
-        return {
-            name: responseName,
-            symbol: responseSymbol,
-            decimals: responseDecimals,
-        }
+        const [res] = await getAllTokenInfo([address])
+        return res
     } catch (e) {
         console.log(e)
         return Promise.reject(e)
