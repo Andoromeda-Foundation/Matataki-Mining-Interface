@@ -49,7 +49,11 @@ interface poolEarnAndStakeInterface {
   totalSupply: BigNumber
 }
 
-const FarmCards: React.FC = () => {
+interface FardsProps {
+  reloadFarms: number | string
+}
+
+const FarmCards: React.FC<FardsProps> = ({ reloadFarms }) => {
   const [farmss] = useFarms()
   const [farms, setFarms] = useState([])
   const { ethereum, account }: { account: string; ethereum: provider } = useWallet()
@@ -138,7 +142,7 @@ const FarmCards: React.FC = () => {
       setFarms(list)
     }
     initFarm()
-  }, [])
+  }, [reloadFarms])
 
   const sushiIndex = farms.findIndex(
     ({ tokenSymbol }) => tokenSymbol === 'SUSHI',

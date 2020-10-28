@@ -54,7 +54,10 @@ const tokenInfoEmpty: tokennInfoInterface = {
   decimal: 18
 }
 
-const CreatePool = () => {
+interface CreatePoolModalProps extends ModalProps {
+  reloadFarmClick: () => void
+}
+const CreatePool: React.FC<CreatePoolModalProps> = ({ reloadFarmClick, onDismiss }) => {
   const { ethereum, account }: { account: string; ethereum: provider } = useWallet()
   const [form] = Form.useForm();
   const [requestedApproval, setRequestedApproval] = useState(false)
@@ -77,16 +80,22 @@ const CreatePool = () => {
   console.log('allowance', allowance.toString())
 
   const onFinish = async (values: any) => {
-    console.log(values);
-    message.success('开始创建');
+    console.log(values)
     try {
       setRequestedSubmit(true)
+      message.success('Start Create Pool ...')
       const contract = getContractFactory(ethereum as provider, StakingMiningPoolFactory)
       const txHash = await createMiningPool(contract, `${earnTokenInfo.symbol}-${earnTokenInfo.symbol}`, values.earn, values.stake, parseUnits(values.earnNumber, earnTokenInfo.decimal).toString(), values.days, account)
-      // user rejected tx or didn't go thru
-      if (!txHash) {
-        setRequestedSubmit(false)
+      if (txHash) {
+        message.success('Create Pool Success...')
+        await reloadFarmClick()
+        await onDismiss()
+      } else {
+        // user rejected tx or didn't go thru
+        message.success('Maybe the user rejected...')
       }
+      console.log('txHash', txHash)
+      setRequestedSubmit(false)
     } catch (e) {
       console.log(e)
       setRequestedSubmit(false)
@@ -277,23 +286,14 @@ const CreatePool = () => {
   );
 };
 
-const AccountModal: React.FC<ModalProps> = ({ onDismiss }) => {
-  const { account, reset } = useWallet()
 
-  const handleSignOutClick = useCallback(() => {
-    onDismiss!()
-    reset()
-  }, [onDismiss, reset])
-
-  const sushi = useSushi()
-  const sushiBalance = useTokenBalance(getSushiAddress(sushi))
-
+const CreateModal: React.FC<CreatePoolModalProps> = ({ reloadFarmClick, onDismiss }) => {
   return (
     <Modal>
       <ModalTitle text="Create Pool" />
       <ModalContent>
         <Spacer />
-        <CreatePool></CreatePool>
+        <CreatePool reloadFarmClick={reloadFarmClick} onDismiss={onDismiss}></CreatePool>
         <Spacer />
       </ModalContent>
     </Modal>
@@ -323,4 +323,4 @@ const StyleTokenInfoCol = styled.section`
   flex-direction: column;
 `
 
-export default AccountModal
+export default CreateModal
