@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, Fragment } from 'react'
+import React, { useCallback, useState, useEffect, Fragment, useMemo } from 'react'
 import styled from 'styled-components'
 import { useWallet } from 'use-wallet'
 import useTokenBalance from '../../../hooks/useTokenBalance'
@@ -23,10 +23,11 @@ import { debounce, isEmpty } from 'lodash';
 import Jazzicon from '../../../components/Jazzicon'
 import ERC20ABI from '../../../sushi/lib/abi/erc20.json'
 import { StakingMiningPoolFactory } from '../../../constants/tokenAddresses'
-import { getContract, getContractFactory } from "../../../utils/erc20";
+import { getContract, getContractFactory, getContractFactoryStakingRewards } from "../../../utils/erc20";
 import { provider } from 'web3-core'
 import useApprove from "../../../hooks/useApprove";
 import { parseUnits } from 'ethers/lib/utils'
+import useAllowancePool from "../../../hooks/useAllowancePool";
 
 const { RangePicker } = DatePicker;
 
@@ -42,27 +43,59 @@ const tailLayout = {
   wrapperCol: { offset: 7, span: 15 },
 };
 
-const CreatePool = () => {
+interface tokennInfoInterface {
+  name: string
+  symbol: string
+  decimal: number
+}
+const tokenInfoEmpty: tokennInfoInterface = {
+  name: '',
+  symbol: '',
+  decimal: 18
+}
+
+interface CreatePoolModalProps extends ModalProps {
+  reloadFarmClick: () => void
+}
+const CreatePool: React.FC<CreatePoolModalProps> = ({ reloadFarmClick, onDismiss }) => {
   const { ethereum, account }: { account: string; ethereum: provider } = useWallet()
   const [form] = Form.useForm();
   const [requestedApproval, setRequestedApproval] = useState(false)
   const [requestedSubmit, setRequestedSubmit] = useState(false)
   // const [avatarSrc, setAvatarSrc] = useState('')
   const defaultValueTime: any = [moment().format('YYYY-MM-DD HH:mm'), moment().day(7).format('YYYY-MM-DD HH:mm')]
-  const [stakeTokenInfo, setStakeTokenInfo]: any = useState({})
-  const [earnTokenInfo, setEarnTokenInfo]: any = useState({})
+  const [stakeTokenInfo, setStakeTokenInfo] = useState<tokennInfoInterface>(Object.assign({}, tokenInfoEmpty))
+  const [earnTokenInfo, setEarnTokenInfo] = useState<tokennInfoInterface>(Object.assign({}, tokenInfoEmpty))
+
+  // 需要质押的合约
+  const earnContract = useMemo(() => {
+    let data = form.getFieldsValue()
+    if (data.earn && !isEmpty(earnTokenInfo)) {
+      return getContract(ethereum as provider, data.earn)
+    }
+    return
+  }, [ethereum, earnTokenInfo])
+
+  const allowance = useAllowancePool(earnContract, StakingMiningPoolFactory)
+  console.log('allowance', allowance.toString())
 
   const onFinish = async (values: any) => {
-    console.log(values);
-    message.success('开始创建');
+    console.log(values)
     try {
       setRequestedSubmit(true)
+      message.success('Start Create Pool ...')
       const contract = getContractFactory(ethereum as provider, StakingMiningPoolFactory)
-      const txHash = await createMiningPool(contract, `${earnTokenInfo.symbol}-${earnTokenInfo.symbol}`, values.earn, values.stake, parseUnits(values.earnNumber, earnTokenInfo.decimals).toString(), values.days, account)
-      // user rejected tx or didn't go thru
-      if (!txHash) {
-        setRequestedSubmit(false)
+      const txHash = await createMiningPool(contract, `${earnTokenInfo.symbol}-${earnTokenInfo.symbol}`, values.earn, values.stake, parseUnits(values.earnNumber, earnTokenInfo.decimal).toString(), values.days, account)
+      if (txHash) {
+        message.success('Create Pool Success...')
+        await reloadFarmClick()
+        await onDismiss()
+      } else {
+        // user rejected tx or didn't go thru
+        message.success('Maybe the user rejected...')
       }
+      console.log('txHash', txHash)
+      setRequestedSubmit(false)
     } catch (e) {
       console.log(e)
       setRequestedSubmit(false)
@@ -86,7 +119,7 @@ const CreatePool = () => {
       }
     } catch (e) {
       console.log('onChangeStakeToken res error', e)
-      setStakeTokenInfo({})
+      setStakeTokenInfo(Object.assign({}, tokenInfoEmpty))
     }
   }
 
@@ -102,7 +135,7 @@ const CreatePool = () => {
       }
     } catch (e) {
       console.log('onChangeEarnToken res error', e)
-      setEarnTokenInfo({})
+      setEarnTokenInfo(Object.assign({}, tokenInfoEmpty))
     }
   }
 
@@ -135,13 +168,16 @@ const CreatePool = () => {
   async function handleApprove() {
     try {
       setRequestedApproval(true)
-      const data = form.getFieldsValue()
-      const contract = getContract(ethereum as provider, data.earn)
-      const txHash = await approve(contract, StakingMiningPoolFactory, account)
-      // user rejected tx or didn't go thru
-      if (!txHash) {
-        setRequestedApproval(false)
+      message.success('Start Approve...')
+      const txHash = await approve(earnContract, StakingMiningPoolFactory, account)
+      if (txHash) {
+        message.success('Approve Success...')
+      } else {
+        // user rejected tx or didn't go thru
+        message.success('Maybe the user rejected...')
       }
+      console.log('txHash', txHash)
+      setRequestedApproval(false)
     } catch (e) {
       console.log(e)
       setRequestedApproval(false)
@@ -169,7 +205,7 @@ const CreatePool = () => {
           <Input placeholder="Please input you stake token address" onChange={onChangeStakeToken} />
         </Form.Item>
         {
-          isEmpty(stakeTokenInfo) ? '' : (
+          !isEmpty(stakeTokenInfo) && stakeTokenInfo.symbol ? (
             <StyleTokenInfoRow>
               <Row>
                 <Col span={layout.labelCol.span}></Col>
@@ -181,18 +217,18 @@ const CreatePool = () => {
                       </section>
                       <span>{stakeTokenInfo.name}({stakeTokenInfo.symbol})</span>
                     </div>
-                    <span>decimals: {stakeTokenInfo.decimals}</span>
+                    <span>decimals: {stakeTokenInfo.decimal}</span>
                   </StyleTokenInfoCol>
                 </Col>
               </Row>
             </StyleTokenInfoRow>
-          )
+          ) : ''
         }
         <Form.Item name="earn" label="Earn Token" rules={[{ required: true, message: 'Please input your earn token address!' }]}>
           <Input placeholder="Please input you earn token address" onChange={onChangeEarnToken} />
         </Form.Item>
         {
-          isEmpty(earnTokenInfo) ? '' : (
+          !isEmpty(earnTokenInfo) && earnTokenInfo.symbol ? (
             <>
               <Form.Item name="earnNumber" label="Earn Number" rules={[{ required: true, message: 'Please input your earn token number!' }]}>
                 <Input placeholder="Please input you earn token number" />
@@ -208,19 +244,23 @@ const CreatePool = () => {
                         </section>
                         <span>{earnTokenInfo.name}({earnTokenInfo.symbol})</span>
                       </div>
-                      <span>decimals: {earnTokenInfo.decimals}</span>
-                      <Button type="primary"
-                        disabled={requestedApproval}
-                        onClick={handleApprove}
-                      >
-                        Approve {(earnTokenInfo.symbol).toLocaleUpperCase()}
-                      </Button>
+                      <span>decimals: {earnTokenInfo.decimal}</span>
+                      {
+                        !allowance.toNumber()
+                          ? (<Button type="primary"
+                            disabled={requestedApproval}
+                            onClick={handleApprove}
+                          >
+                            Approve {(earnTokenInfo.symbol).toLocaleUpperCase()}
+                          </Button>)
+                          : ''
+                      }
                     </StyleTokenInfoCol>
                   </Col>
                 </Row>
               </StyleTokenInfoRow>
             </>
-          )
+          ) : ''
         }
         {/* <Form.Item name="startTime" label="Start Time" rules={[{ required: true }]}>
           <Space direction="vertical" size={12}>
@@ -246,23 +286,14 @@ const CreatePool = () => {
   );
 };
 
-const AccountModal: React.FC<ModalProps> = ({ onDismiss }) => {
-  const { account, reset } = useWallet()
 
-  const handleSignOutClick = useCallback(() => {
-    onDismiss!()
-    reset()
-  }, [onDismiss, reset])
-
-  const sushi = useSushi()
-  const sushiBalance = useTokenBalance(getSushiAddress(sushi))
-
+const CreateModal: React.FC<CreatePoolModalProps> = ({ reloadFarmClick, onDismiss }) => {
   return (
     <Modal>
       <ModalTitle text="Create Pool" />
       <ModalContent>
         <Spacer />
-        <CreatePool></CreatePool>
+        <CreatePool reloadFarmClick={reloadFarmClick} onDismiss={onDismiss}></CreatePool>
         <Spacer />
       </ModalContent>
     </Modal>
@@ -292,4 +323,4 @@ const StyleTokenInfoCol = styled.section`
   flex-direction: column;
 `
 
-export default AccountModal
+export default CreateModal

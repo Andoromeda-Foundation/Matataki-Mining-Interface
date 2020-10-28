@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Route, Switch, useRouteMatch } from 'react-router-dom'
 import { useWallet } from 'use-wallet'
 
@@ -20,8 +20,13 @@ import styled from 'styled-components'
 const Farms: React.FC = () => {
   const { path } = useRouteMatch()
   const { account } = useWallet()
+
+  // 用来刷新 farms
+  const [reloadFarms, setReloadFarms] = useState(0)
+  const reloadFarmClick = () => setReloadFarms(Date.now())
+
   const [onPresentWalletProviderModal] = useModal(<WalletProviderModal />)
-  const [onPresentCreatePoolModal] = useModal(<CreatePoolModal />)
+  const [onPresentCreatePoolModal] = useModal(<CreatePoolModal reloadFarmClick={reloadFarmClick} />)
 
   return (
     <Switch>
@@ -35,29 +40,29 @@ const Farms: React.FC = () => {
                 title="Select Your Favorite Fan Ticket"
               />
               <StyledCreateButton>
-                <Button onClick={ onPresentCreatePoolModal }>Create</Button>
+                <Button onClick={onPresentCreatePoolModal}>Create</Button>
               </StyledCreateButton>
-              <FarmCards />
+              <FarmCards reloadFarms={reloadFarms} />
             </Route>
             <Route path={`${path}/:farmId`}>
               <Farm />
             </Route>
           </>
         ) : (
-          <div
-            style={{
-              alignItems: 'center',
-              display: 'flex',
-              flex: 1,
-              justifyContent: 'center',
-            }}
-          >
-            <Button
-              onClick={onPresentWalletProviderModal}
-              text="🔓 Unlock Wallet"
-            />
-          </div>
-        )}
+            <div
+              style={{
+                alignItems: 'center',
+                display: 'flex',
+                flex: 1,
+                justifyContent: 'center',
+              }}
+            >
+              <Button
+                onClick={onPresentWalletProviderModal}
+                text="🔓 Unlock Wallet"
+              />
+            </div>
+          )}
       </Page>
     </Switch>
   )

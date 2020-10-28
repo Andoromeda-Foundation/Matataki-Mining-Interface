@@ -17,35 +17,43 @@ import useFarms from '../../../hooks/useFarms'
 import useSushi from '../../../hooks/useSushi'
 import { getEarned, getMasterChefContract } from '../../../sushi/utils'
 import { bnToDec, arraySlice, iconxx } from '../../../utils'
-import { getTokenInfo, farmLength, farmsAddress, rewardsToken, stakingToken, getFactsOf, getAllFram, getEarnAndStakeTokenAddress, getAllTokenInfo } from "../../../utils/contract";
+import { getTokenInfo, farmLength, farmsAddress, rewardsToken, stakingToken, getAllFram, getEarnAndStakeTokenAddress, getAllTokenInfo } from "../../../utils/contract";
 import { getContractFactory, getContractFactoryStakingRewards } from "../../../utils/erc20";
 import { provider } from 'web3-core'
 import { StakingMiningPoolFactory } from '../../../constants/tokenAddresses'
+import { getBalanceNumber } from "../../../utils/formatBalance"
+import { formatUnits } from 'ethers/lib/utils'
 
 interface FarmWithStakedValue extends Farm, StakedValue {
-  apy: BigNumber,
-  poolAddress?: string,
-  earnName?: string,
-  earnSymbol?: string,
-  earnDecimals?: number,
-  stakeName?: string,
-  stakeSymbol?: string,
-  stakeTokenAddress?: string,
+  apy: BigNumber
+  poolAddress?: string
+  earnName?: string
+  earnSymbol?: string
+  earnDecimals?: number
+  stakeName?: string
+  stakeSymbol?: string
+  stakeTokenAddress?: string
   stakeDecimals?: number,
+  totalSupply: BigNumber | any
 }
 
 interface tokennInfoInterface {
-  name: string,
-  symbol: string,
-  decimal: string
+  name: string
+  symbol: string
+  decimal: number
 }
 
 interface poolEarnAndStakeInterface {
-  earnTokenAddress: string,
+  earnTokenAddress: string
   stakeTokenAddress: string
+  totalSupply: BigNumber
 }
 
-const FarmCards: React.FC = () => {
+interface FardsProps {
+  reloadFarms: number | string
+}
+
+const FarmCards: React.FC<FardsProps> = ({ reloadFarms }) => {
   const [farmss] = useFarms()
   const [farms, setFarms] = useState([])
   const { ethereum, account }: { account: string; ethereum: provider } = useWallet()
@@ -92,7 +100,8 @@ const FarmCards: React.FC = () => {
           stakeName: '',
           stakeSymbol: '',
           stakeTokenAddress: '',
-          stakeDecimals: 18
+          stakeDecimals: 18,
+          totalSupply: new BigNumber('0')
         })
       })
 
@@ -101,6 +110,7 @@ const FarmCards: React.FC = () => {
       earnAndStakeTokenAddressList.forEach((i: poolEarnAndStakeInterface, idx: number) => {
         list[idx].earnTokenAddress = list[idx].earnTokenAddress = i.earnTokenAddress
         list[idx].lpTokenAddress = list[idx].stakeTokenAddress = i.stakeTokenAddress
+        list[idx].totalSupply = i.totalSupply
       })
 
       // 获取所有token地址去查询
@@ -132,7 +142,7 @@ const FarmCards: React.FC = () => {
       setFarms(list)
     }
     initFarm()
-  }, [])
+  }, [reloadFarms])
 
   const sushiIndex = farms.findIndex(
     ({ tokenSymbol }) => tokenSymbol === 'SUSHI',
@@ -188,7 +198,7 @@ const FarmCards: React.FC = () => {
         ))
       ) : (
           <StyledLoadingWrapper>
-            <Loader text="Cooking the rice ..." />
+            <Loader text="Looking for all mining pools ..." />
           </StyledLoadingWrapper>
         )}
     </StyledCards>
@@ -285,6 +295,15 @@ const FarmCard: React.FC<FarmCardProps> = ({ farm }) => {
                   : '-'}{' '}
                 ETH
               </span> */}
+            </StyledInsight>
+            <StyledInsight>
+              <span>TOTAL SUPPLY</span>
+              <span>
+                {farm.totalSupply.toString()
+                  ? formatUnits(farm.totalSupply, farm.stakeDecimals)
+                  : 'Loading ...'
+                }
+              </span>
             </StyledInsight>
           </StyledContent>
         </CardContent>

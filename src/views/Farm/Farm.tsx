@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, Fragment } from 'react'
+import BigNumber from 'bignumber.js'
 import { useParams } from 'react-router-dom'
 import styled from 'styled-components'
 import { useWallet } from 'use-wallet'
@@ -6,13 +7,16 @@ import { provider } from 'web3-core'
 import PageHeader from '../../components/PageHeader'
 import Spacer from '../../components/Spacer'
 import useFarm from '../../hooks/useFarm'
-import useRedeem from '../../hooks/useRedeem'
-import useSushi from '../../hooks/useSushi'
-import { getMasterChefContract } from '../../sushi/utils'
+// import useRedeem from '../../hooks/useRedeem'
+// import useSushi from '../../hooks/useSushi'
+// import { getMasterChefContract } from '../../sushi/utils'
 import Harvest from './components/Harvest'
 import Stake from './components/Stake'
-import { getTokenInfo, farmLength, farmsAddress, rewardsToken, stakingToken } from '../../utils/contract'
+import { getTokenInfo, farmLength, farmsAddress, rewardsToken, stakingToken, getEarnAndStakeTokenAddress, getAllTokenInfo } from '../../utils/contract'
 import { getContract, getContractFactory, getContractFactoryStakingRewards } from '../../utils/erc20'
+import { isEmpty } from 'lodash'
+import Loader from '../../components/Loader'
+import { arraySlice } from "../../utils";
 
 interface farmInterface {
   earnName: string,
@@ -24,6 +28,18 @@ interface farmInterface {
   stakeSymbol: string,
   stakeTokenAddress: string,
   stakeDecimals: number
+}
+
+interface poolEarnAndStakeInterface {
+  earnTokenAddress: string
+  stakeTokenAddress: string
+  totalSupply: BigNumber
+}
+
+interface tokennInfoInterface {
+  name: string
+  symbol: string
+  decimal: number
 }
 
 const farmTemp: farmInterface = {
@@ -69,17 +85,21 @@ const Farm: React.FC = () => {
     const initFarm = async (farmId: string) => {
       const data: farmInterface = Object.assign({}, farmTemp)
 
-      data.earnTokenAddress = await rewardsToken(getContractFactoryStakingRewards(ethereum as provider, farmId))
-      data.stakeTokenAddress = await stakingToken(getContractFactoryStakingRewards(ethereum as provider, farmId))
+      // 获取所有池子质押和奖励的token地址
+      const [earnAndStakeTokenAddress]: poolEarnAndStakeInterface[] = await getEarnAndStakeTokenAddress([farmId])
+      data.earnTokenAddress = await earnAndStakeTokenAddress.earnTokenAddress
+      data.stakeTokenAddress = await earnAndStakeTokenAddress.stakeTokenAddress
 
-      const earnTokenInfoResult = await getTokenInfo(data.earnTokenAddress)
-      data.earnName = earnTokenInfoResult.name
-      data.earnSymbol = earnTokenInfoResult.symbol
-      data.earnDecimals = earnTokenInfoResult.decimals
-      const stakeTokenInfoResult = await getTokenInfo(data.stakeTokenAddress)
-      data.stakeName = stakeTokenInfoResult.name
-      data.stakeSymbol = stakeTokenInfoResult.symbol
-      data.stakeDecimals = stakeTokenInfoResult.decimals
+      // 查询所有token信息
+      const tokenAddressResult: tokennInfoInterface[] = await getAllTokenInfo([data.earnTokenAddress, data.stakeTokenAddress])
+
+      data.earnName = tokenAddressResult[0].name
+      data.earnSymbol = tokenAddressResult[0].symbol
+      data.earnDecimals = tokenAddressResult[0].decimal
+
+      data.stakeName = tokenAddressResult[1].name
+      data.stakeSymbol = tokenAddressResult[1].symbol
+      data.stakeDecimals = tokenAddressResult[1].decimal
 
       setFarm(data)
 
@@ -88,15 +108,14 @@ const Farm: React.FC = () => {
     initFarm(farmId)
   }, [])
 
-  const sushi = useSushi()
+  // const sushi = useSushi()
   const { ethereum } = useWallet()
 
-  const lpContract = useMemo(() => {
-    return getContract(ethereum as provider, lpTokenAddress)
-  }, [ethereum, lpTokenAddress])
+  // const lpContract = useMemo(() => {
+  //   return getContract(ethereum as provider, lpTokenAddress)
+  // }, [ethereum, lpTokenAddress])
 
   const stakeContract = useMemo(() => {
-    console.log('stakeContract farm', farm.stakeTokenAddress)
     return getContract(ethereum as provider, farm.stakeTokenAddress)
   }, [ethereum, farm])
 
@@ -104,56 +123,66 @@ const Farm: React.FC = () => {
     return getContractFactoryStakingRewards(ethereum as provider, farmId)
   }, [ethereum, farm])
 
-  const { onRedeem } = useRedeem(getMasterChefContract(sushi))
+  // const { onRedeem } = useRedeem(getMasterChefContract(sushi))
 
-  const lpTokenName = useMemo(() => {
-    return lpToken.toUpperCase()
-  }, [lpToken])
+  // const lpTokenName = useMemo(() => {
+  //   return lpToken.toUpperCase()
+  // }, [lpToken])
 
-  const earnTokenName = useMemo(() => {
-    return earnToken.toUpperCase()
-  }, [earnToken])
+  // const earnTokenName = useMemo(() => {
+  //   return earnToken.toUpperCase()
+  // }, [earnToken])
 
-
-  console.log('lpContract', lpContract)
 
   return (
     <>
-      <PageHeader
-        icon={icon || '⛰️'}
-        subtitle={`Deposit ${farm.stakeSymbol.toUpperCase()}  Tokens and earn ${farm.earnSymbol.toUpperCase()}`}
-        title={name}
-      />
-      <StyledFarm>
-        <StyledCardsWrapper>
-          <StyledCardWrapper>
-            <Harvest pid={pid}
-              poolContract={poolContract}
-              tokenName={farm.earnSymbol.toUpperCase()}
-              decimals={farm.earnDecimals}
-            />
-          </StyledCardWrapper>
-          <Spacer />
-          <StyledCardWrapper>
-            <Stake
-              lpContract={lpContract}
-              stakeContract={stakeContract}
-              stakeContracAddress={farm.stakeTokenAddress}
-              poolContract={poolContract}
-              poolContractAddress={farmId}
-              pid={pid}
-              tokenName={farm.stakeSymbol.toUpperCase()}
-              decimals={farm.stakeDecimals}
-            />
-          </StyledCardWrapper>
-        </StyledCardsWrapper>
-        <Spacer size="lg" />
-        <StyledInfo>
-          ⭐️ Every time you stake and unstake LP tokens, the contract will
-          automagically harvest SUSHI rewards for you!
-        </StyledInfo>
-        <Spacer size="lg" />
-      </StyledFarm>
+      {
+        (!isEmpty(farm) && farm.earnTokenAddress && farm.stakeTokenAddress && farm.earnSymbol && farm.stakeSymbol)
+          ?
+          (
+            <Fragment>
+              <PageHeader
+                icon={icon || '⛰️'}
+                subtitle={`Deposit ${farm.stakeSymbol.toUpperCase()}  Tokens and earn ${farm.earnSymbol.toUpperCase()}`}
+                title={name}
+              />
+              <StyledFarm>
+                <StyledCardsWrapper>
+                  <StyledCardWrapper>
+                    <Harvest pid={pid}
+                      poolContract={poolContract}
+                      tokenName={farm.earnSymbol.toUpperCase()}
+                      decimals={farm.earnDecimals}
+                    />
+                  </StyledCardWrapper>
+                  <Spacer />
+                  <StyledCardWrapper>
+                    <Stake
+                      // lpContract={lpContract}
+                      stakeContract={stakeContract}
+                      stakeContracAddress={farm.stakeTokenAddress}
+                      poolContract={poolContract}
+                      poolContractAddress={farmId}
+                      pid={pid}
+                      tokenName={farm.stakeSymbol.toUpperCase()}
+                      decimals={farm.stakeDecimals}
+                    />
+                  </StyledCardWrapper>
+                </StyledCardsWrapper>
+                <Spacer size="lg" />
+                <StyledInfo>
+                  ⭐️ Pay attention to the safety of funds!
+                </StyledInfo>
+                <Spacer size="lg" />
+              </StyledFarm>
+            </Fragment>
+          )
+          : (
+            <StyledLoadingWrapper>
+              <Loader text="Obtaining mining pool information ..." />
+            </StyledLoadingWrapper>
+          )
+      }
     </>
   )
 }
@@ -193,6 +222,12 @@ const StyledInfo = styled.h3`
   margin: 0;
   padding: 0;
   text-align: center;
+`
+const StyledLoadingWrapper = styled.div`
+  align-items: center;
+  display: flex;
+  flex: 1;
+  justify-content: center;
 `
 
 export default Farm
