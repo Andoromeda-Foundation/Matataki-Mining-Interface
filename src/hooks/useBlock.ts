@@ -30,7 +30,7 @@ const useBlock = () => {
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [ethereum])
+  }, [ethereum, block])
 
   return block
 }

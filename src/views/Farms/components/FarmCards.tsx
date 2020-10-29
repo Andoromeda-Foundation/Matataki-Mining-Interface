@@ -10,9 +10,10 @@ import CardIcon from '../../../components/CardIcon'
 import Loader from '../../../components/Loader'
 import Spacer from '../../../components/Spacer'
 import { Farm } from '../../../contexts/Farms'
-import useAllStakedValue, {
-  StakedValue,
-} from '../../../hooks/useAllStakedValue'
+// import useAllStakedValue, {
+//   StakedValue,
+// } from '../../../hooks/useAllStakedValue'
+import { StakedValue } from '../../../hooks/useAllStakedValue'
 // import useFarms from '../../../hooks/useFarms'
 import useSushi from '../../../hooks/useSushi'
 import { getEarned, getMasterChefContract } from '../../../sushi/utils'
@@ -55,8 +56,8 @@ interface FardsProps {
 const FarmCards: React.FC<FardsProps> = ({ reloadFarms }) => {
   // const [farmss] = useFarms()
   const [farms, setFarms] = useState([])
-  const { ethereum, account }: { account: string; ethereum: provider } = useWallet()
-  const stakedValue = useAllStakedValue()
+  const { ethereum }: { account: string; ethereum: provider } = useWallet()
+  // const stakedValue = useAllStakedValue()
 
   useEffect(() => {
 
