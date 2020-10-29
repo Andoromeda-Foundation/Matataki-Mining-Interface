@@ -71,7 +71,7 @@ const CreatePool: React.FC<CreatePoolModalProps> = ({ reloadFarmClick, onDismiss
       return getContract(ethereum as provider, data.earn)
     }
     return
-  }, [ethereum, earnTokenInfo])
+  }, [ethereum, earnTokenInfo, form])
 
   const allowance = useAllowancePool(earnContract, StakingMiningPoolFactory)
   console.log('allowance', allowance.toString())
@@ -187,7 +187,7 @@ const CreatePool: React.FC<CreatePoolModalProps> = ({ reloadFarmClick, onDismiss
       <div style={{ display: 'flex' }}>
         <StyledBalanceWrapper>
           <CardIcon>
-            <span>🍚</span>
+            <span role="img" aria-label="iconn">🍚</span>
           </CardIcon>
         </StyledBalanceWrapper>
       </div>
@@ -297,11 +297,11 @@ const CreateModal: React.FC<CreatePoolModalProps> = ({ reloadFarmClick, onDismis
   )
 }
 
-const StyledBalance = styled.div`
-  align-items: center;
-  display: flex;
-  flex-direction: column;
-`
+// const StyledBalance = styled.div`
+//   align-items: center;
+//   display: flex;
+//   flex-direction: column;
+// `
 
 const StyledBalanceWrapper = styled.div`
   align-items: center;

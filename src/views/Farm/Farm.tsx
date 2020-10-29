@@ -57,10 +57,10 @@ const Farm: React.FC = () => {
   const { farmId }: { farmId: string } = useParams()
   const {
     pid,
-    lpToken,
-    lpTokenAddress,
-    tokenAddress,
-    earnToken,
+    // lpToken,
+    // lpTokenAddress,
+    // tokenAddress,
+    // earnToken,
     name,
     icon,
   } = useFarm(farmId) || {
@@ -101,11 +101,10 @@ const Farm: React.FC = () => {
       data.stakeDecimals = tokenAddressResult[1].decimal
 
       setFarm(data)
-
       console.log('data', data)
     }
     initFarm(farmId)
-  }, [])
+  }, [farmId])
 
   // const sushi = useSushi()
   const { ethereum } = useWallet()
@@ -120,7 +119,7 @@ const Farm: React.FC = () => {
 
   const poolContract = useMemo(() => {
     return getContractFactoryStakingRewards(ethereum as provider, farmId)
-  }, [ethereum, farm])
+  }, [ethereum, farmId])
 
   // const { onRedeem } = useRedeem(getMasterChefContract(sushi))
 
