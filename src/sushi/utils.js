@@ -6,12 +6,12 @@ BigNumber.config({
   DECIMAL_PLACES: 80,
 })
 
-const GAS_LIMIT = {
-  STAKING: {
-    DEFAULT: 200000,
-    SNX: 850000,
-  },
-}
+// const GAS_LIMIT = {
+//   STAKING: {
+//     DEFAULT: 200000,
+//     SNX: 850000,
+//   },
+// }
 
 export const getMasterChefAddress = (sushi) => {
   return sushi && sushi.masterChefAddress

@@ -10,9 +10,12 @@ import Modal, { ModalProps } from '../Modal'
 import ModalActions from '../ModalActions'
 import ModalContent from '../ModalContent'
 import ModalTitle from '../ModalTitle'
-import Spacer from '../Spacer'
+// import Spacer from '../Spacer'
 
 import WalletCard from './components/WalletCard'
+import store from '../../utils/store'
+import { message } from 'antd'
+
 
 const WalletProviderModal: React.FC<ModalProps> = ({ onDismiss }) => {
   const { account, connect } = useWallet()
@@ -23,6 +26,14 @@ const WalletProviderModal: React.FC<ModalProps> = ({ onDismiss }) => {
     }
   }, [account, onDismiss])
 
+  const connectType = (type: any) => {
+    store.set('connect-type', type)
+    if (type === 'walletconnect') {
+      message.info(`Please select Rinkeby network node. 请选择Rinkeby网络节点。`)
+    }
+    connect(type)
+  }
+
   return (
     <Modal>
       <ModalTitle text="Select a wallet provider." />
@@ -31,19 +42,19 @@ const WalletProviderModal: React.FC<ModalProps> = ({ onDismiss }) => {
         <StyledWalletsWrapper>
           <StyledWalletCard>
             <WalletCard
-              icon={<img src={metamaskLogo} style={{ height: 32 }} />}
-              onConnect={() => connect('injected')}
+              icon={<img src={metamaskLogo} style={{ height: 32 }} alt="logo" />}
+              onConnect={() => connectType('injected')}
               title="Metamask"
             />
           </StyledWalletCard>
           {/* <Spacer size="sm" /> */}
-          <StyledWalletCard>
+          {/* <StyledWalletCard>
             <WalletCard
-              icon={<img src={walletConnectLogo} style={{ height: 24 }} />}
-              onConnect={() => connect('walletconnect')}
+              icon={<img src={walletConnectLogo} style={{ height: 24 }} alt="logo" />}
+              onConnect={() => connectType('walletconnect')}
               title="WalletConnect"
             />
-          </StyledWalletCard>
+          </StyledWalletCard> */}
         </StyledWalletsWrapper>
       </ModalContent>
 
@@ -57,7 +68,7 @@ const WalletProviderModal: React.FC<ModalProps> = ({ onDismiss }) => {
 const StyledWalletsWrapper = styled.div`
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
+  justify-content: center;
   @media (max-width: ${(props) => props.theme.breakpoints.mobile}px) {
     flex-direction: column;
     flex-wrap: none;

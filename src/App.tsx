@@ -15,11 +15,9 @@ import Farms from './views/Farms'
 import Home from './views/Home'
 import Stake from './views/Stake'
 
-import { useProvider } from "./hooks/useProvider";
 import { Network } from "./config/index";
 
 const App: React.FC = () => {
-  useProvider()
 
   const [mobileMenu, setMobileMenu] = useState(false)
 
@@ -57,10 +55,10 @@ const Providers: React.FC = ({ children }) => {
   return (
     <ThemeProvider theme={theme}>
       <UseWalletProvider
-        chainId={ Network }
-        // connectors={{
-        //   walletconnect: { rpcUrl: 'https://mainnet.eth.aragon.network/' },
-        // }}
+        chainId={Network}
+      // connectors={{
+      //   walletconnect: { rpcUrl: '' },
+      // }}
       >
         <SushiProvider>
           <TransactionProvider>

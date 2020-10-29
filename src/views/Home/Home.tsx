@@ -2,17 +2,17 @@ import React from 'react'
 import styled from 'styled-components'
 import chef from '../../assets/img/matataki.png'
 import Button from '../../components/Button'
-import Container from '../../components/Container'
+// import Container from '../../components/Container'
 import Page from '../../components/Page'
 import PageHeader from '../../components/PageHeader'
 import Spacer from '../../components/Spacer'
-import Balances from './components/Balances'
+// import Balances from './components/Balances'
 
 const Home: React.FC = () => {
   return (
     <Page>
       <PageHeader
-        icon={<img src={chef} height={120} style={{ verticalAlign: 'initial' }} />}
+        icon={<img src={chef} height={120} style={{ verticalAlign: 'initial' }} alt="logo" aria-label="logo" />}
         title="Matataki is Ready"
         subtitle="Stake FAN TICKET tokens to claim your very own yummy TOKEN!"
       />

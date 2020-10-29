@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Web3 from 'web3'
 import { provider } from 'web3-core'
 import { useWallet } from 'use-wallet'
@@ -30,7 +30,7 @@ const useBlock = () => {
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [ethereum])
+  }, [ethereum, block])
 
   return block
 }

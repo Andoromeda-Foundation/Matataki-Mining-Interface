@@ -10,18 +10,18 @@ import CardIcon from '../../../components/CardIcon'
 import Loader from '../../../components/Loader'
 import Spacer from '../../../components/Spacer'
 import { Farm } from '../../../contexts/Farms'
-import useAllStakedValue, {
-  StakedValue,
-} from '../../../hooks/useAllStakedValue'
-import useFarms from '../../../hooks/useFarms'
+// import useAllStakedValue, {
+//   StakedValue,
+// } from '../../../hooks/useAllStakedValue'
+import { StakedValue } from '../../../hooks/useAllStakedValue'
+// import useFarms from '../../../hooks/useFarms'
 import useSushi from '../../../hooks/useSushi'
 import { getEarned, getMasterChefContract } from '../../../sushi/utils'
 import { bnToDec, arraySlice, iconxx } from '../../../utils'
-import { getTokenInfo, farmLength, farmsAddress, rewardsToken, stakingToken, getAllFram, getEarnAndStakeTokenAddress, getAllTokenInfo } from "../../../utils/contract";
-import { getContractFactory, getContractFactoryStakingRewards } from "../../../utils/erc20";
+import { farmLength, getAllFram, getEarnAndStakeTokenAddress, getAllTokenInfo } from "../../../utils/contract";
+import { getContractFactory } from "../../../utils/erc20";
 import { provider } from 'web3-core'
 import { StakingMiningPoolFactory } from '../../../constants/tokenAddresses'
-import { getBalanceNumber } from "../../../utils/formatBalance"
 import { formatUnits } from 'ethers/lib/utils'
 
 interface FarmWithStakedValue extends Farm, StakedValue {
@@ -54,12 +54,10 @@ interface FardsProps {
 }
 
 const FarmCards: React.FC<FardsProps> = ({ reloadFarms }) => {
-  const [farmss] = useFarms()
+  // const [farmss] = useFarms()
   const [farms, setFarms] = useState([])
-  const { ethereum, account }: { account: string; ethereum: provider } = useWallet()
-  const stakedValue = useAllStakedValue()
-
-  console.log('farmss', farmss)
+  const { ethereum }: { account: string; ethereum: provider } = useWallet()
+  // const stakedValue = useAllStakedValue()
 
   useEffect(() => {
 
@@ -144,30 +142,24 @@ const FarmCards: React.FC<FardsProps> = ({ reloadFarms }) => {
     initFarm()
   }, [reloadFarms])
 
-  const sushiIndex = farms.findIndex(
-    ({ tokenSymbol }) => tokenSymbol === 'SUSHI',
-  )
+  // const sushiIndex = farms.findIndex(
+  //   ({ tokenSymbol }) => tokenSymbol === 'SUSHI',
+  // )
 
-  const sushiPrice =
-    sushiIndex >= 0 && stakedValue[sushiIndex]
-      ? stakedValue[sushiIndex].tokenPriceInWeth
-      : new BigNumber(0)
+  // const sushiPrice =
+  //   sushiIndex >= 0 && stakedValue[sushiIndex]
+  //     ? stakedValue[sushiIndex].tokenPriceInWeth
+  //     : new BigNumber(0)
 
-  const BLOCKS_PER_YEAR = new BigNumber(2336000)
-  const SUSHI_PER_BLOCK = new BigNumber(1000)
+  // const BLOCKS_PER_YEAR = new BigNumber(2336000)
+  // const SUSHI_PER_BLOCK = new BigNumber(1000)
 
   const rows = farms.reduce<FarmWithStakedValue[][]>(
     (farmRows, farm, i) => {
       const farmWithStakedValue = {
         ...farm,
-        ...stakedValue[i],
-        apy: stakedValue[i]
-          ? sushiPrice
-            .times(SUSHI_PER_BLOCK)
-            .times(BLOCKS_PER_YEAR)
-            .times(stakedValue[i].poolWeight)
-            .div(stakedValue[i].totalWethValue)
-          : null,
+        // ...stakedValue[i],
+        apy: null,
       }
       const newFarmRows = [...farmRows]
       if (newFarmRows[newFarmRows.length - 1].length === 3) {
@@ -180,8 +172,7 @@ const FarmCards: React.FC<FardsProps> = ({ reloadFarms }) => {
     [[]],
   )
 
-  console.log('farms', farms)
-  console.log('rows', rows)
+  console.log('farms and rows', farms, rows)
 
   return (
     <StyledCards>

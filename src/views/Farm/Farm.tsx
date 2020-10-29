@@ -12,11 +12,10 @@ import useFarm from '../../hooks/useFarm'
 // import { getMasterChefContract } from '../../sushi/utils'
 import Harvest from './components/Harvest'
 import Stake from './components/Stake'
-import { getTokenInfo, farmLength, farmsAddress, rewardsToken, stakingToken, getEarnAndStakeTokenAddress, getAllTokenInfo } from '../../utils/contract'
-import { getContract, getContractFactory, getContractFactoryStakingRewards } from '../../utils/erc20'
+import { getEarnAndStakeTokenAddress, getAllTokenInfo } from '../../utils/contract'
+import { getContract, getContractFactoryStakingRewards } from '../../utils/erc20'
 import { isEmpty } from 'lodash'
 import Loader from '../../components/Loader'
-import { arraySlice } from "../../utils";
 
 interface farmInterface {
   earnName: string,
@@ -58,10 +57,10 @@ const Farm: React.FC = () => {
   const { farmId }: { farmId: string } = useParams()
   const {
     pid,
-    lpToken,
-    lpTokenAddress,
-    tokenAddress,
-    earnToken,
+    // lpToken,
+    // lpTokenAddress,
+    // tokenAddress,
+    // earnToken,
     name,
     icon,
   } = useFarm(farmId) || {
@@ -102,11 +101,10 @@ const Farm: React.FC = () => {
       data.stakeDecimals = tokenAddressResult[1].decimal
 
       setFarm(data)
-
       console.log('data', data)
     }
     initFarm(farmId)
-  }, [])
+  }, [farmId])
 
   // const sushi = useSushi()
   const { ethereum } = useWallet()
@@ -121,7 +119,7 @@ const Farm: React.FC = () => {
 
   const poolContract = useMemo(() => {
     return getContractFactoryStakingRewards(ethereum as provider, farmId)
-  }, [ethereum, farm])
+  }, [ethereum, farmId])
 
   // const { onRedeem } = useRedeem(getMasterChefContract(sushi))
 

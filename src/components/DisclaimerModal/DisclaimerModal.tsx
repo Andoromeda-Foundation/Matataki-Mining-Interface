@@ -28,7 +28,7 @@ const DisclaimerModal: React.FC<DisclaimerModal> = ({
         <div>
           <p>Audits: None.</p>
           <p>
-            While the initial creators of the Sushi protocol have made
+            While the initial creators of the MatatakiMining protocol have made
             reasonable efforts to attempt to ensure the security of the
             contracts, including forking much of the codebase from existing
             well-audited projects and soliciting review from friends, nothing
@@ -44,13 +44,14 @@ const DisclaimerModal: React.FC<DisclaimerModal> = ({
     } else {
       return (
         <div>
-          <p>Attention SUSHI Uniswap LPs</p>
+          <p>Attention Any token</p>
           <p>
-            The only Uniswap pool that is compatible with SUSHI is SUSHI/yCRV
-            (Curve yPool tokens)
+            {/* The only Uniswap pool that is compatible with SUSHI is SUSHI/yCRV
+            (Curve yPool tokens) */}
+            Pay attention to the safety of funds!
           </p>
-          <p>Providing liquidity for other Uniswap pools is dangerous</p>
-          <p>You will LOSE your share of rebases</p>
+          {/* <p>Providing liquidity for other Uniswap pools is dangerous</p> */}
+          {/* <p>You will LOSE your share of rebases</p> */}
         </div>
       )
     }
