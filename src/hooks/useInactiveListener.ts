@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useWallet } from 'use-wallet'
+import store from '../utils/store'
 
 export function useInactiveListener(suppress = false) {
     const { connect, error, account } = useWallet()
@@ -9,22 +10,26 @@ export function useInactiveListener(suppress = false) {
             return () => { };
         }
         const { ethereum } = window as any;
+        const connectMetamask = () => {
+            if (store.get('connect-type') === 'injected')
+                connect('injected')
+        }
         if (ethereum && ethereum.on && !error) {
             const handleChainChanged = (chainId: any) => {
                 console.log("chainChanged", chainId);
-                connect('injected')
+                connectMetamask()
             };
 
             const handleAccountsChanged = (accounts: any) => {
                 console.log("accountsChanged", accounts);
                 if (accounts.length > 0) {
-                    connect('injected')
+                    connectMetamask()
                 }
             };
 
             const handleNetworkChanged = (networkId: any) => {
                 console.log("networkChanged", networkId);
-                connect('injected')
+                connectMetamask()
             };
 
             ethereum.on("chainChanged", handleChainChanged);
@@ -34,7 +39,7 @@ export function useInactiveListener(suppress = false) {
             const timer = setInterval(() => {
                 console.log('account', account)
                 if (!account) {
-                    connect('injected')
+                    connectMetamask()
                 }
             }, 2000)
 

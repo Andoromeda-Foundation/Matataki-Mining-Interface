@@ -1,5 +1,20 @@
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+[Live](https://matataki-mining.netlify.app/)
+
+[![Netlify Status](https://api.netlify.com/api/v1/badges/4c74db3e-baff-4fb6-91cf-2b15a8959ec6/deploy-status)](https://app.netlify.com/sites/matataki-mining/deploys)
+
+## Why is there no WalletConnect?
+1. Because mobile wallets are not convenient to add test tokens on the Rinkeby test network.
+2. Because mobile wallets need to set up their own nodes.
+3. Because Metamask is very easy to use.
+
+## Maybe you need it
+https://faucet.rinkeby.io/
+
+http://matataki.io/
+
+
 ## Available Scripts
 
 In the project directory, you can run:

@@ -13,6 +13,9 @@ import ModalTitle from '../ModalTitle'
 // import Spacer from '../Spacer'
 
 import WalletCard from './components/WalletCard'
+import store from '../../utils/store'
+import { message } from 'antd'
+
 
 const WalletProviderModal: React.FC<ModalProps> = ({ onDismiss }) => {
   const { account, connect } = useWallet()
@@ -23,6 +26,14 @@ const WalletProviderModal: React.FC<ModalProps> = ({ onDismiss }) => {
     }
   }, [account, onDismiss])
 
+  const connectType = (type: any) => {
+    store.set('connect-type', type)
+    if (type === 'walletconnect') {
+      message.info(`Please select Rinkeby network node. 请选择Rinkeby网络节点。`)
+    }
+    connect(type)
+  }
+
   return (
     <Modal>
       <ModalTitle text="Select a wallet provider." />
@@ -32,18 +43,18 @@ const WalletProviderModal: React.FC<ModalProps> = ({ onDismiss }) => {
           <StyledWalletCard>
             <WalletCard
               icon={<img src={metamaskLogo} style={{ height: 32 }} alt="logo" />}
-              onConnect={() => connect('injected')}
+              onConnect={() => connectType('injected')}
               title="Metamask"
             />
           </StyledWalletCard>
           {/* <Spacer size="sm" /> */}
-          <StyledWalletCard>
+          {/* <StyledWalletCard>
             <WalletCard
               icon={<img src={walletConnectLogo} style={{ height: 24 }} alt="logo" />}
-              onConnect={() => connect('walletconnect')}
+              onConnect={() => connectType('walletconnect')}
               title="WalletConnect"
             />
-          </StyledWalletCard>
+          </StyledWalletCard> */}
         </StyledWalletsWrapper>
       </ModalContent>
 
@@ -57,7 +68,7 @@ const WalletProviderModal: React.FC<ModalProps> = ({ onDismiss }) => {
 const StyledWalletsWrapper = styled.div`
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
+  justify-content: center;
   @media (max-width: ${(props) => props.theme.breakpoints.mobile}px) {
     flex-direction: column;
     flex-wrap: none;
