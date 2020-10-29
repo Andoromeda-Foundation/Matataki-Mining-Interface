@@ -7,7 +7,7 @@ import chef from '../../assets/img/matataki.png'
 const Logo: React.FC = () => {
   return (
     <StyledLogo to="/">
-      <img src={chef} height="32" style={{ marginTop: -4 }} />
+      <img src={chef} height="32" style={{ marginTop: -4 }} alt="logo" />
       <StyledText>
         Matataki <MasterChefText>MasterChef</MasterChefText>
       </StyledText>

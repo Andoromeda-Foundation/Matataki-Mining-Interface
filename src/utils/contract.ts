@@ -1,12 +1,9 @@
-import { Network, NetworksName } from "../config/index";
-import ethers, { Contract } from "ethers";
+import ethers from "ethers";
 import ERC20ABI from '../sushi/lib/abi/erc20.json'
 import StakingRewards from '../constants/abi/StakingRewards.json'
 import StakingMiningPoolFactory from '../constants/abi/StakingMiningPoolFactory.json'
 import { arraySlice } from './index'
-
 import { MaxUint256 } from '@ethersproject/constants'
-import Web3 from 'web3'
 import BigNumber from 'bignumber.js'
 import { aggregateCalls } from "../utils/multicall";
 

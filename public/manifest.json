@@ -1,6 +1,6 @@
 {
-  "short_name": "SushiSwap",
-  "name": "Farm SUSHI with Uniswap LP Tokens",
+  "short_name": "MatatakiMining",
+  "name": "Use any ERC20 Token to create a mining pool",
   "icons": [
     {
       "src": "favicon.png",

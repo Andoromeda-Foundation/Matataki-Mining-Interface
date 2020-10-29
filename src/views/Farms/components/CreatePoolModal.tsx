@@ -1,39 +1,36 @@
-import React, { useCallback, useState, useEffect, Fragment, useMemo } from 'react'
+import React, { useState, useEffect, Fragment, useMemo } from 'react'
 import styled from 'styled-components'
 import { useWallet } from 'use-wallet'
-import useTokenBalance from '../../../hooks/useTokenBalance'
-import useSushi from '../../../hooks/useSushi'
-import { getSushiAddress } from '../../../sushi/utils'
-import { getBalanceNumber } from '../../../utils/formatBalance'
-import ButtonCustom from './Button'
+// import useTokenBalance from '../../../hooks/useTokenBalance'
+// import useSushi from '../../../hooks/useSushi'
+// import { getSushiAddress } from '../../../sushi/utils'
+// import { getBalanceNumber } from '../../../utils/formatBalance'
+// import ButtonCustom from './Button'
 import CardIcon from '../../../components/CardIcon'
-import Label from '../../../components/Label'
+// import Label from '../../../components/Label'
 import Modal, { ModalProps } from '../../../components/Modal'
-import ModalActions from '../../../components/ModalActions'
+// import ModalActions from '../../../components/ModalActions'
 import ModalContent from '../../../components/ModalContent'
 import ModalTitle from '../../../components/ModalTitle'
 import Spacer from '../../../components/Spacer'
-import Value from '../../../components/Value'
+// import Value from '../../../components/Value'
 import moment from 'moment';
 
-import { Form, Input, Button, Select, Avatar, DatePicker, Space, message, Row, Col } from 'antd';
-import { UserOutlined } from '@ant-design/icons';
+import { Form, Input, Button, message, Row, Col } from 'antd';
 import { getTokenInfo, approve, createMiningPool } from "../../../utils/contract";
-import { debounce, isEmpty } from 'lodash';
+import { isEmpty } from 'lodash';
 import Jazzicon from '../../../components/Jazzicon'
-import ERC20ABI from '../../../sushi/lib/abi/erc20.json'
+// import ERC20ABI from '../../../sushi/lib/abi/erc20.json'
 import { StakingMiningPoolFactory } from '../../../constants/tokenAddresses'
-import { getContract, getContractFactory, getContractFactoryStakingRewards } from "../../../utils/erc20";
+import { getContract, getContractFactory } from "../../../utils/erc20";
 import { provider } from 'web3-core'
-import useApprove from "../../../hooks/useApprove";
+// import useApprove from "../../../hooks/useApprove";
 import { parseUnits } from 'ethers/lib/utils'
 import useAllowancePool from "../../../hooks/useAllowancePool";
 
-const { RangePicker } = DatePicker;
-
-const { Option } = Select;
-
-const dateFormat = 'YYYY-MM-DD HH:mm';
+// const { RangePicker } = DatePicker;
+// const { Option } = Select;
+// const dateFormat = 'YYYY-MM-DD HH:mm';
 
 const layout = {
   labelCol: { span: 7 },
